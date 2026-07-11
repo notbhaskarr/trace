@@ -1,5 +1,5 @@
 from fastapi import Header, HTTPException
-from supabase import create_client, Client
+from supabase import create_client, Client, ClientOptions
 from google import genai
 import os
 from dotenv import load_dotenv
@@ -32,3 +32,9 @@ def get_current_user(authorization: str = Header(None)):
         raise HTTPException(status_code=401, detail="Unauthorized")
     
     return res.user
+
+# Dependency to get the raw JWT token for RLS
+def get_auth_token(authorization: str = Header(None)):
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid token")
+    return authorization.split(" ")[1]

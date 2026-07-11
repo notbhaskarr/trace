@@ -4,7 +4,8 @@ from typing import TypedDict, List, Dict
 from langgraph.graph import StateGraph, END
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import SystemMessage, HumanMessage
-from core.deps import GEMINI_API_KEY, supabase
+from core.deps import GEMINI_API_KEY, SUPABASE_URL, SUPABASE_KEY
+from supabase import create_client, ClientOptions
 from services.ai import generate_query_embedding
 
 # Load prompts
@@ -20,6 +21,7 @@ with open(os.path.join(SERVICES_DIR, "llmasjudgeprompt.txt"), "r") as f:
 class GraphState(TypedDict):
     question: str
     user_id: str
+    token: str
     documents: List[Dict]
     answer: str
     attempts: int
@@ -43,10 +45,13 @@ def retrieve(state: GraphState):
     """
     question = state["question"]
     user_id = state["user_id"]
+    token = state["token"]
     
     query_embedding = generate_query_embedding(question)
     
-    match_res = supabase.rpc("match_entry_vectors", {
+    user_client = create_client(SUPABASE_URL, SUPABASE_KEY, options=ClientOptions(headers={"Authorization": f"Bearer {token}"}))
+    
+    match_res = user_client.rpc("match_entry_vectors", {
         "query_embedding": query_embedding,
         "match_threshold": 0.15,
         "match_count": 10,
