@@ -14,14 +14,14 @@ def chunk_text(text: str, max_chunk_size: int = 300, overlap: int = 50) -> List[
 def generate_embeddings(chunks: List[str]):
     enriched_chunks = [f"[Journal Entry] {c}" for c in chunks]
     embed_res = gemini_client.models.embed_content(
-        model="text-embedding-004",
+        model="embedding-001",
         contents=enriched_chunks
     )
     return embed_res.embeddings
 
 def generate_query_embedding(query: str):
     embed_res = gemini_client.models.embed_content(
-        model="text-embedding-004",
+        model="embedding-001",
         contents=query
     )
     return embed_res.embeddings[0].values
