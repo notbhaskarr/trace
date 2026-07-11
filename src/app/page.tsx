@@ -1,6 +1,8 @@
 "use client";
 import React, { useState } from 'react';
 import { PawPrint } from 'lucide-react';
+import Navbar from '@/components/Navbar';
+import UserWidget from '@/components/UserWidget';
 
 const NodesLogo = ({ className }: { className?: string }) => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -13,6 +15,12 @@ const NodesLogo = ({ className }: { className?: string }) => (
 
 export default function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [meta, setMeta] = useState("...");
+
+  React.useEffect(() => {
+    // ponytail: this internal edge route falls back to IP location on localhost, but uses native edge headers on vercel.
+    fetch('/api/geo').then(r => r.json()).then(d => setMeta(`${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} • ${d.city?.toUpperCase() || 'UNKNOWN'}, ${d.region || ''}`)).catch(() => setMeta(`${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} • OFFLINE`));
+  }, []);
 
   return (
     <main className="flex flex-col h-screen w-full bg-gradient-to-br from-gray-100 via-white to-gray-200 text-black overflow-hidden relative">
@@ -23,25 +31,8 @@ export default function Dashboard() {
         <div className="absolute bottom-[-10%] right-[-10%] w-[40rem] h-[40rem] bg-stone-200/50 rounded-full mix-blend-multiply filter blur-3xl opacity-70"></div>
       </div>
 
-      {/* GLOBAL NAVBAR (Always Visible) */}
-      <header className="relative z-20 w-full flex items-center justify-between p-6 px-8 border-b border-white/50 bg-white/40 backdrop-blur-md shadow-sm">
-        <div className="flex items-center gap-2">
-          <NodesLogo className="w-5 h-5 text-black" />
-          <h1 className="text-lg font-black tracking-[0.15em] uppercase text-black pt-0.5">TRACE</h1>
-        </div>
-        <div className="flex items-center gap-6">
-          <button 
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="text-gray-400 hover:text-black transition-all flex items-center justify-center p-1.5 rounded-full hover:bg-black/5"
-            title={isSidebarOpen ? 'Close Panel' : 'Ask Doobie'}
-          >
-            <PawPrint className="w-5 h-5" />
-          </button>
-          <div className="text-xs font-bold text-gray-500 hover:text-black cursor-pointer transition-colors uppercase tracking-wider">
-            Guest User
-          </div>
-        </div>
-      </header>
+      <UserWidget />
+      <Navbar onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
 
       {/* MAIN CONTENT AREA */}
       <div className="flex-1 flex overflow-hidden relative z-10">
@@ -51,7 +42,7 @@ export default function Dashboard() {
           <header className="p-8 pb-4 flex justify-between items-start">
             <div>
               <h2 className="text-2xl font-semibold tracking-tight text-gray-900">OCTOBER 14, 2024</h2>
-              <p className="text-sm text-gray-500 font-medium mt-1">Unfiltered Thoughts on Present States</p>
+              <p className="text-[10px] font-medium text-gray-500 mt-1">{meta}</p>
             </div>
           </header>
 
