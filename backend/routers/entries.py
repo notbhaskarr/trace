@@ -7,13 +7,14 @@ router = APIRouter()
 
 @router.get("/api/entries")
 def get_entries(user=Depends(get_current_user)):
-    res = supabase.table("entries").select("id, content, created_at").eq("user_id", user.id).order("created_at", desc=True).execute()
+    res = supabase.table("entries").select("id, content, created_at, location").eq("user_id", user.id).order("created_at", desc=True).execute()
     
     entries = []
     for entry in res.data:
         entries.append({
             "id": entry["id"],
             "content": entry["content"],
+            "location": entry.get("location"),
             "created_at": entry["created_at"]
         })
     return entries
@@ -26,7 +27,8 @@ def create_entry(entry: EntryCreate, user=Depends(get_current_user)):
     # 1. Save Raw Entry
     res = supabase.table("entries").insert({
         "user_id": user.id,
-        "content": entry.content
+        "content": entry.content,
+        "location": entry.location
     }).execute()
     
     if not res.data:
