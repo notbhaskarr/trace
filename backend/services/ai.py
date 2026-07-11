@@ -28,9 +28,4 @@ def generate_query_embedding(query: str):
     )
     return embed_res['embedding']
 
-def generate_chat_response(query: str, context_text: str):
-    prompt = f"You are Doobie, an AI journal assistant. You answer questions based ONLY on the user's past journal entries provided in the context below. If the context does not contain the answer, say you don't know based on their journals. Be concise, reflective, and conversational. \n\nContext:\n{context_text}\n\nUser query: {query}"
-    
-    model = genai.GenerativeModel("gemini-1.5-pro")
-    chat_res = model.generate_content(prompt)
-    return chat_res.text
+
