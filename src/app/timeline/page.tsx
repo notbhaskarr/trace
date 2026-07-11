@@ -3,7 +3,7 @@ import React, { useState, useEffect, useTransition } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import UserWidget from '@/components/UserWidget';
-import { getEntries, editEntry, deleteEntry } from '@/app/actions/entry';
+import { createClient } from '@/utils/supabase/client';
 
 type Entry = {
   id: string;
@@ -24,8 +24,26 @@ export default function Timeline() {
 
   useEffect(() => {
     const loadEntries = async () => {
-      const data = await getEntries();
-      setEntries(data);
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const res = await fetch(`${apiUrl}/api/entries`, {
+        headers: { 'Authorization': `Bearer ${session?.access_token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        // The python backend returns raw entries, we need to format the dates
+        const formattedData = data.map((entry: any) => ({
+          ...entry,
+          date: new Date(entry.created_at).toLocaleDateString('en-US', {
+            month: 'long', day: '2-digit', year: 'numeric'
+          }).toUpperCase(),
+          time: new Date(entry.created_at).toLocaleTimeString('en-US', {
+            hour: 'numeric', minute: '2-digit'
+          })
+        }));
+        setEntries(formattedData);
+      }
     };
     loadEntries();
   }, []);
@@ -45,9 +63,21 @@ export default function Timeline() {
     if (!selectedEntry || isPending) return;
     
     startTransition(async () => {
-      const result = await editEntry(selectedEntry.id, editContent);
-      if (result.error) {
-        alert(result.error);
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const res = await fetch(`${apiUrl}/api/entries/${selectedEntry.id}`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}` 
+        },
+        body: JSON.stringify({ content: editContent })
+      });
+      
+      const result = await res.json();
+      if (!res.ok) {
+        alert(result.detail || "Failed to update");
         return;
       }
       
@@ -66,9 +96,16 @@ export default function Timeline() {
 
     if (confirm("Are you sure you want to permanently delete this trace?")) {
       startTransition(async () => {
-        const result = await deleteEntry(selectedEntry.id);
-        if (result.error) {
-          alert(result.error);
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        const res = await fetch(`${apiUrl}/api/entries/${selectedEntry.id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${session?.access_token}` }
+        });
+        
+        if (!res.ok) {
+          alert("Failed to delete trace.");
           return;
         }
 

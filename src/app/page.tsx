@@ -3,8 +3,7 @@ import React, { useState, useTransition } from 'react';
 import { PawPrint } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import UserWidget from '@/components/UserWidget';
-import { saveEntry } from '@/app/actions/entry';
-import { askDoobie } from '@/app/actions/chat';
+import { createClient } from '@/utils/supabase/client';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -37,9 +36,20 @@ export default function Dashboard() {
     if (!content.trim() || isPending) return;
     
     startTransition(async () => {
-      const result = await saveEntry(content, locationStr);
-      if (result.error) {
-        alert(result.error);
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const res = await fetch(`${apiUrl}/api/entries`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}` 
+        },
+        body: JSON.stringify({ content, location: locationStr })
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        alert(result.detail || "Failed to save");
       } else {
         setContent(""); // clear the editor on success
       }
@@ -55,11 +65,23 @@ export default function Dashboard() {
     setChatHistory(prev => [...prev, { role: 'user', content: userMessage }]);
 
     startChatTransition(async () => {
-      const result = await askDoobie(userMessage);
-      if (result.error) {
-        setChatHistory(prev => [...prev, { role: 'assistant', content: result.error! }]);
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const res = await fetch(`${apiUrl}/api/chat`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}` 
+        },
+        body: JSON.stringify({ query: userMessage })
+      });
+      const result = await res.json();
+      
+      if (!res.ok) {
+        setChatHistory(prev => [...prev, { role: 'assistant', content: result.detail || "Error connecting to Doobie." }]);
       } else {
-        setChatHistory(prev => [...prev, { role: 'assistant', content: result.answer!, context: result.context }]);
+        setChatHistory(prev => [...prev, { role: 'assistant', content: result.answer, context: result.context }]);
       }
     });
   };
