@@ -55,7 +55,7 @@ def create_entry(entry: EntryCreate, user=Depends(get_current_user), token: str 
                 vector_rows.append({
                     "entry_id": new_entry["id"],
                     "user_id": user.id,
-                    "embedding": emb.values
+                    "embedding": emb
                 })
                 
             user_client.table("entry_vectors").insert(vector_rows).execute()
@@ -85,7 +85,7 @@ def update_entry(entry_id: str, entry: EntryUpdate, user=Depends(get_current_use
                 vector_rows.append({
                     "entry_id": entry_id,
                     "user_id": user.id,
-                    "embedding": emb.values
+                    "embedding": emb
                 })
             user_client.table("entry_vectors").insert(vector_rows).execute()
         except Exception as e:
