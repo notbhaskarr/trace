@@ -104,7 +104,7 @@ export default function Timeline() {
                  onClick={() => handleOpenModal(entry)}
                  className="p-6 py-5 bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-sm space-y-4 hover:shadow-md transition-all cursor-pointer group"
                >
-                 <p className="text-base text-gray-800 leading-loose line-clamp-3 text-ellipsis group-hover:text-black font-mono">
+                 <p className="text-base text-gray-800 leading-loose line-clamp-3 text-ellipsis group-hover:text-black font-serif">
                    {entry.content}
                  </p>
                </div>
@@ -147,7 +147,7 @@ export default function Timeline() {
                   className="w-full flex-1 p-0 text-lg bg-transparent border-none focus:outline-none focus:ring-0 resize-none leading-relaxed text-black"
                 />
               ) : (
-                <p className="text-lg text-black leading-relaxed whitespace-pre-wrap font-mono">
+                <p className="text-lg text-black leading-relaxed whitespace-pre-wrap font-serif">
                   {selectedEntry.content}
                 </p>
               )}
