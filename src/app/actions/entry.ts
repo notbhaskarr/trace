@@ -29,7 +29,7 @@ function chunkText(text: string, maxChunkSize = 500): string[] {
   return chunks.filter(c => c.trim().length > 0)
 }
 
-export async function saveEntry(content: string) {
+export async function saveEntry(content: string, location?: string) {
   if (!content.trim()) return { error: "Content cannot be empty" }
 
   const supabase = await createClient()
@@ -45,7 +45,8 @@ export async function saveEntry(content: string) {
     .from('entries')
     .insert({
       user_id: user.id,
-      content: content
+      content: content,
+      location: location || null
     })
     .select('id')
     .single()
@@ -110,7 +111,7 @@ export async function getEntries() {
 
   const { data, error } = await supabase
     .from('entries')
-    .select('id, content, created_at')
+    .select('id, content, created_at, location')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
@@ -122,6 +123,7 @@ export async function getEntries() {
   return data.map(entry => ({
     id: entry.id,
     content: entry.content,
+    location: entry.location,
     // Format timestamp as "OCTOBER 12, 2024"
     date: new Date(entry.created_at).toLocaleDateString('en-US', {
       month: 'long',

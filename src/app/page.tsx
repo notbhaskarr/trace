@@ -24,6 +24,7 @@ const NodesLogo = ({ className }: { className?: string }) => (
 export default function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [meta, setMeta] = useState("...");
+  const [locationStr, setLocationStr] = useState("");
   const [content, setContent] = useState("");
   const [isPending, startTransition] = useTransition();
   const [chatInput, setChatInput] = useState("");
@@ -36,7 +37,7 @@ export default function Dashboard() {
     if (!content.trim() || isPending) return;
     
     startTransition(async () => {
-      const result = await saveEntry(content);
+      const result = await saveEntry(content, locationStr);
       if (result.error) {
         alert(result.error);
       } else {
@@ -65,7 +66,11 @@ export default function Dashboard() {
 
   React.useEffect(() => {
     // ponytail: this internal edge route falls back to IP location on localhost, but uses native edge headers on vercel.
-    fetch('/api/geo').then(r => r.json()).then(d => setMeta(`${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} • ${d.city?.toUpperCase() || 'UNKNOWN'}, ${d.region || ''}`)).catch(() => setMeta(`${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} • OFFLINE`));
+    fetch('/api/geo').then(r => r.json()).then(d => {
+      const loc = `${d.city?.toUpperCase() || 'UNKNOWN'}, ${d.region || ''}`;
+      setLocationStr(loc);
+      setMeta(`${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} • ${loc}`);
+    }).catch(() => setMeta(`${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} • OFFLINE`));
   }, []);
 
   return (
