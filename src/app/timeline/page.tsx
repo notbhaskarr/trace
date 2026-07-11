@@ -78,15 +78,7 @@ export default function Timeline() {
     }
   };
 
-  // Group entries by date
-  const groupedEntries = entries.reduce((acc, entry) => {
-    if (!acc[entry.date]) {
-      acc[entry.date] = [];
-    }
-    acc[entry.date].push(entry);
-    return acc;
-  }, {} as Record<string, Entry[]>);
-
+  // Reverting date grouping as requested
   return (
     <main className="flex flex-col h-screen w-full bg-gradient-to-br from-gray-100 via-white to-gray-200 text-black overflow-hidden relative">
       {/* Decorative Background Elements */}
@@ -102,27 +94,20 @@ export default function Timeline() {
       <div className="flex-1 overflow-y-auto relative z-10 p-8 pb-32">
         <div className="max-w-5xl mx-auto space-y-16 py-8">
           
-          {Object.entries(groupedEntries).map(([date, dateEntries]) => (
-            <div key={date} className="space-y-6">
-              <h1 className="text-sm font-black tracking-[0.3em] text-gray-300 border-b border-gray-200/50 pb-4 mb-4">
-                {date}
-              </h1>
-              {dateEntries.map(entry => (
-                <div key={entry.id} className="space-y-3">
-                   <div className="flex justify-between items-center px-2">
-                     <h2 className="text-[10px] font-black tracking-[0.2em] text-gray-400">{entry.time}</h2>
-                     {entry.location && <h2 className="text-[9px] font-black tracking-[0.2em] text-gray-300">{entry.location}</h2>}
-                   </div>
-                   <div 
-                     onClick={() => handleOpenModal(entry)}
-                     className="p-6 py-5 bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-sm space-y-4 hover:shadow-md transition-all cursor-pointer group"
-                   >
-                     <p className="text-base text-gray-800 leading-loose line-clamp-3 text-ellipsis group-hover:text-black font-mono">
-                       {entry.content}
-                     </p>
-                   </div>
-                </div>
-              ))}
+          {entries.map(entry => (
+            <div key={entry.id} className="space-y-4">
+               <div className="flex justify-between items-center">
+                 <h2 className="text-xs font-black tracking-[0.2em] text-gray-400">{entry.date} • {entry.time}</h2>
+                 {entry.location && <h2 className="text-[10px] font-black tracking-[0.2em] text-gray-300">{entry.location}</h2>}
+               </div>
+               <div 
+                 onClick={() => handleOpenModal(entry)}
+                 className="p-6 py-5 bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-sm space-y-4 hover:shadow-md transition-all cursor-pointer group"
+               >
+                 <p className="text-base text-gray-800 leading-loose line-clamp-3 text-ellipsis group-hover:text-black font-mono">
+                   {entry.content}
+                 </p>
+               </div>
             </div>
           ))}
 
