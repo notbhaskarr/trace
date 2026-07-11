@@ -61,6 +61,7 @@ def create_entry(entry: EntryCreate, user=Depends(get_current_user), token: str 
             user_client.table("entry_vectors").insert(vector_rows).execute()
         except Exception as e:
             print(f"Failed to generate embeddings: {e}")
+            return {"success": True, "id": new_entry["id"], "warning": f"Entry saved, but vector generation failed: {e}"}
             
     return {"success": True, "id": new_entry["id"]}
 
