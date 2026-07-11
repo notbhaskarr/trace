@@ -77,9 +77,10 @@ export default function Timeline() {
           
           {entries.map(entry => (
             <div key={entry.id} className="space-y-4">
-               <h2 className="text-xs font-black tracking-[0.2em] text-gray-400">
-                 {entry.date} {entry.location && ` • ${entry.location}`}
-               </h2>
+               <div className="flex justify-between items-center">
+                 <h2 className="text-xs font-black tracking-[0.2em] text-gray-400">{entry.date}</h2>
+                 {entry.location && <h2 className="text-[10px] font-black tracking-[0.2em] text-gray-300">{entry.location}</h2>}
+               </div>
                <div 
                  onClick={() => handleOpenModal(entry)}
                  className="p-8 bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-sm space-y-4 hover:shadow-md transition-all cursor-pointer group"
@@ -104,9 +105,9 @@ export default function Timeline() {
           
           {/* Overlay Header */}
           <div className="flex items-center justify-between p-6 px-8 border-b border-gray-100">
-            <h2 className="text-xs font-black tracking-[0.2em] text-gray-400">
-              {selectedEntry.date} {selectedEntry.location && ` • ${selectedEntry.location}`}
-            </h2>
+            <h2 className="text-xs font-black tracking-[0.2em] text-gray-400">{selectedEntry.date}</h2>
+            {selectedEntry.location && <h2 className="text-[10px] font-black tracking-[0.2em] text-gray-300 ml-4">{selectedEntry.location}</h2>}
+            <div className="flex-1"></div>
             <button 
               onClick={handleCloseModal}
               className="text-gray-400 hover:text-black transition-colors"
