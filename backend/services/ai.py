@@ -1,27 +1,15 @@
-import re
 from typing import List
 from core.deps import gemini_client
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 def chunk_text(text: str, max_chunk_size: int = 300, overlap: int = 50) -> List[str]:
-    chunks = []
-    # Split by sentences (very naive split for MVP, but better than pure character splits)
-    sentences = re.split(r'(?<=[.?!])\s+', text)
-    
-    current_chunk = ""
-    for sentence in sentences:
-        if len(current_chunk) + len(sentence) < max_chunk_size:
-            current_chunk += (current_chunk and " ") + sentence
-        else:
-            if current_chunk:
-                chunks.append(current_chunk)
-            # Start new chunk with overlap (take the last N chars from the previous chunk)
-            overlap_text = current_chunk[-overlap:] if len(current_chunk) > overlap else current_chunk
-            current_chunk = overlap_text + " " + sentence if overlap_text else sentence
-            
-    if current_chunk:
-        chunks.append(current_chunk)
-        
-    return [c.strip() for c in chunks if c.strip()]
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=max_chunk_size,
+        chunk_overlap=overlap,
+        length_function=len,
+        is_separator_regex=False,
+    )
+    return text_splitter.split_text(text)
 
 def generate_embeddings(chunks: List[str]):
     enriched_chunks = [f"[Journal Entry] {c}" for c in chunks]
