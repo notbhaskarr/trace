@@ -100,7 +100,7 @@ export default function Timeline() {
 
       {/* TIMELINE FEED */}
       <div className="flex-1 overflow-y-auto relative z-10 p-8 pb-32">
-        <div className="max-w-2xl mx-auto space-y-16 py-8">
+        <div className="max-w-5xl mx-auto space-y-16 py-8">
           
           {Object.entries(groupedEntries).map(([date, dateEntries]) => (
             <div key={date} className="space-y-6">
@@ -117,7 +117,7 @@ export default function Timeline() {
                      onClick={() => handleOpenModal(entry)}
                      className="p-6 py-5 bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-sm space-y-4 hover:shadow-md transition-all cursor-pointer group"
                    >
-                     <p className="text-base text-gray-800 leading-loose line-clamp-3 text-ellipsis group-hover:text-black font-serif">
+                     <p className="text-base text-gray-800 leading-loose line-clamp-3 text-ellipsis group-hover:text-black font-mono">
                        {entry.content}
                      </p>
                    </div>
@@ -154,7 +154,7 @@ export default function Timeline() {
 
           {/* Overlay Body */}
           <div className="flex-1 overflow-y-auto p-8 relative">
-            <div className="max-w-2xl mx-auto h-full flex flex-col">
+            <div className="max-w-5xl mx-auto h-full flex flex-col">
               {isEditing ? (
                 <textarea 
                   value={editContent}
@@ -162,7 +162,7 @@ export default function Timeline() {
                   className="w-full flex-1 p-0 text-lg bg-transparent border-none focus:outline-none focus:ring-0 resize-none leading-relaxed text-black"
                 />
               ) : (
-                <p className="text-lg text-black leading-relaxed whitespace-pre-wrap font-serif">
+                <p className="text-lg text-black leading-relaxed whitespace-pre-wrap font-mono">
                   {selectedEntry.content}
                 </p>
               )}
@@ -170,7 +170,7 @@ export default function Timeline() {
           </div>
 
           {/* Overlay Footer */}
-          <div className="p-8 flex justify-between items-center max-w-2xl mx-auto w-full">
+          <div className="p-8 flex justify-between items-center max-w-5xl mx-auto w-full">
             {!isEditing ? (
               <>
                 <button 
