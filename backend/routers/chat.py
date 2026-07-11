@@ -16,7 +16,9 @@ def chat_doobie(req: ChatRequest, user=Depends(get_current_user)):
             "question": req.query,
             "user_id": user.id,
             "documents": [],
-            "answer": ""
+            "answer": "",
+            "attempts": 0,
+            "judge_feedback": ""
         }
         
         # Run the graph
