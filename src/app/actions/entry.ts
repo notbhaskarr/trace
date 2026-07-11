@@ -129,8 +129,42 @@ export async function getEntries() {
       month: 'long',
       day: '2-digit',
       year: 'numeric'
-    }).toUpperCase()
+    }).toUpperCase(),
+    // Format time as "10:42 AM"
+    time: new Date(entry.created_at).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit'
+    })
   }))
+}
+
+export async function deleteEntry(id: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return { error: "Not authenticated" }
+
+  // 1. Delete vectors first (though foreign key cascade might handle it depending on schema)
+  await supabase
+    .from('entry_vectors')
+    .delete()
+    .eq('entry_id', id)
+    .eq('user_id', user.id)
+
+  // 2. Delete raw entry
+  const { error } = await supabase
+    .from('entries')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', user.id)
+
+  if (error) {
+    console.error("Failed to delete entry:", error)
+    return { error: "Failed to delete trace." }
+  }
+
+  revalidatePath('/timeline')
+  return { success: true }
 }
 
 export async function editEntry(id: string, newContent: string) {

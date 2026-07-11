@@ -3,11 +3,12 @@ import React, { useState, useEffect, useTransition } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import UserWidget from '@/components/UserWidget';
-import { getEntries, editEntry } from '@/app/actions/entry';
+import { getEntries, editEntry, deleteEntry } from '@/app/actions/entry';
 
 type Entry = {
   id: string;
   date: string;
+  time: string;
   content: string;
   location?: string;
 };
@@ -60,6 +61,32 @@ export default function Timeline() {
     });
   };
 
+  const handleDelete = () => {
+    if (!selectedEntry || isPending) return;
+
+    if (confirm("Are you sure you want to permanently delete this trace?")) {
+      startTransition(async () => {
+        const result = await deleteEntry(selectedEntry.id);
+        if (result.error) {
+          alert(result.error);
+          return;
+        }
+
+        setEntries(entries.filter(e => e.id !== selectedEntry.id));
+        handleCloseModal();
+      });
+    }
+  };
+
+  // Group entries by date
+  const groupedEntries = entries.reduce((acc, entry) => {
+    if (!acc[entry.date]) {
+      acc[entry.date] = [];
+    }
+    acc[entry.date].push(entry);
+    return acc;
+  }, {} as Record<string, Entry[]>);
+
   return (
     <main className="flex flex-col h-screen w-full bg-gradient-to-br from-gray-100 via-white to-gray-200 text-black overflow-hidden relative">
       {/* Decorative Background Elements */}
@@ -75,20 +102,27 @@ export default function Timeline() {
       <div className="flex-1 overflow-y-auto relative z-10 p-8 pb-32">
         <div className="max-w-2xl mx-auto space-y-16 py-8">
           
-          {entries.map(entry => (
-            <div key={entry.id} className="space-y-4">
-               <div className="flex justify-between items-center">
-                 <h2 className="text-xs font-black tracking-[0.2em] text-gray-400">{entry.date}</h2>
-                 {entry.location && <h2 className="text-[10px] font-black tracking-[0.2em] text-gray-300">{entry.location}</h2>}
-               </div>
-               <div 
-                 onClick={() => handleOpenModal(entry)}
-                 className="p-8 bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-sm space-y-4 hover:shadow-md transition-all cursor-pointer group"
-               >
-                 <p className="text-base text-gray-800 leading-loose line-clamp-2 text-ellipsis group-hover:text-black">
-                   {entry.content}
-                 </p>
-               </div>
+          {Object.entries(groupedEntries).map(([date, dateEntries]) => (
+            <div key={date} className="space-y-6">
+              <h1 className="text-sm font-black tracking-[0.3em] text-gray-300 border-b border-gray-200/50 pb-4 mb-4">
+                {date}
+              </h1>
+              {dateEntries.map(entry => (
+                <div key={entry.id} className="space-y-3">
+                   <div className="flex justify-between items-center px-2">
+                     <h2 className="text-[10px] font-black tracking-[0.2em] text-gray-400">{entry.time}</h2>
+                     {entry.location && <h2 className="text-[9px] font-black tracking-[0.2em] text-gray-300">{entry.location}</h2>}
+                   </div>
+                   <div 
+                     onClick={() => handleOpenModal(entry)}
+                     className="p-6 py-5 bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-sm space-y-4 hover:shadow-md transition-all cursor-pointer group"
+                   >
+                     <p className="text-base text-gray-800 leading-loose line-clamp-3 text-ellipsis group-hover:text-black font-serif">
+                       {entry.content}
+                     </p>
+                   </div>
+                </div>
+              ))}
             </div>
           ))}
 
@@ -105,7 +139,7 @@ export default function Timeline() {
           
           {/* Overlay Header */}
           <div className="flex items-center justify-between p-6 px-8 border-b border-gray-100">
-            <h2 className="text-xs font-black tracking-[0.2em] text-gray-400">{selectedEntry.date}</h2>
+            <h2 className="text-xs font-black tracking-[0.2em] text-gray-400">{selectedEntry.date} • {selectedEntry.time}</h2>
             {selectedEntry.location && <h2 className="text-[10px] font-black tracking-[0.2em] text-gray-300 ml-4">{selectedEntry.location}</h2>}
             <div className="flex-1"></div>
             <button 
@@ -128,7 +162,7 @@ export default function Timeline() {
                   className="w-full flex-1 p-0 text-lg bg-transparent border-none focus:outline-none focus:ring-0 resize-none leading-relaxed text-black"
                 />
               ) : (
-                <p className="text-lg text-black leading-relaxed whitespace-pre-wrap">
+                <p className="text-lg text-black leading-relaxed whitespace-pre-wrap font-serif">
                   {selectedEntry.content}
                 </p>
               )}
@@ -136,16 +170,25 @@ export default function Timeline() {
           </div>
 
           {/* Overlay Footer */}
-          <div className="p-8 flex justify-end max-w-2xl mx-auto w-full">
+          <div className="p-8 flex justify-between items-center max-w-2xl mx-auto w-full">
             {!isEditing ? (
-              <button 
-                onClick={() => setIsEditing(true)}
-                className="text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors"
-              >
-                Edit Trace
-              </button>
+              <>
+                <button 
+                  onClick={handleDelete}
+                  disabled={isPending}
+                  className="text-xs font-bold uppercase tracking-widest text-red-400 hover:text-red-600 transition-colors"
+                >
+                  {isPending ? "..." : "Delete"}
+                </button>
+                <button 
+                  onClick={() => setIsEditing(true)}
+                  className="text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors"
+                >
+                  Edit Trace
+                </button>
+              </>
             ) : (
-              <div className="flex items-center gap-6">
+              <div className="flex items-center gap-6 ml-auto">
                 <button 
                   onClick={() => {
                     setIsEditing(false);
