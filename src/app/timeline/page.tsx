@@ -1,8 +1,9 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect, useTransition } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import UserWidget from '@/components/UserWidget';
+import { getEntries, editEntry } from '@/app/actions/entry';
 
 type Entry = {
   id: string;
@@ -10,29 +11,22 @@ type Entry = {
   content: string;
 };
 
-const MOCK_ENTRIES: Entry[] = [
-  {
-    id: "1",
-    date: "OCTOBER 12, 2024",
-    content: "Feeling extremely burned out today. There are too many moving parts in this project and I'm losing the thread. I need to step back and reorganize my priorities before I drop something important."
-  },
-  {
-    id: "2",
-    date: "OCTOBER 10, 2024",
-    content: "Had a great conversation about AI aesthetics. Minimalist UI with complex backend logic seems to be the winning formula. We need to focus on typography and space rather than cluttering the screen with features."
-  },
-  {
-    id: "3",
-    date: "OCTOBER 05, 2024",
-    content: "Why do we overcomplicate everything? The simplest solution is almost always the right one, yet we spend hours engineering ourselves into corners. Note to self: always start with the dumbest possible solution that works."
-  }
-];
+// No mock entries needed
 
 export default function Timeline() {
-  const [entries, setEntries] = useState<Entry[]>(MOCK_ENTRIES);
+  const [entries, setEntries] = useState<Entry[]>([]);
   const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState("");
+  const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    const loadEntries = async () => {
+      const data = await getEntries();
+      setEntries(data);
+    };
+    loadEntries();
+  }, []);
 
   const handleOpenModal = (entry: Entry) => {
     setSelectedEntry(entry);
@@ -46,16 +40,23 @@ export default function Timeline() {
   };
 
   const handleSave = () => {
-    if (!selectedEntry) return;
+    if (!selectedEntry || isPending) return;
     
-    // Update local state
-    setEntries(entries.map(e => 
-      e.id === selectedEntry.id ? { ...e, content: editContent } : e
-    ));
-    
-    // Update selected entry so modal reflects changes
-    setSelectedEntry({ ...selectedEntry, content: editContent });
-    setIsEditing(false);
+    startTransition(async () => {
+      const result = await editEntry(selectedEntry.id, editContent);
+      if (result.error) {
+        alert(result.error);
+        return;
+      }
+      
+      // Update local state to reflect changes instantly
+      setEntries(entries.map(e => 
+        e.id === selectedEntry.id ? { ...e, content: editContent } : e
+      ));
+      
+      setSelectedEntry({ ...selectedEntry, content: editContent });
+      setIsEditing(false);
+    });
   };
 
   return (
@@ -150,10 +151,11 @@ export default function Timeline() {
                 </button>
                 <button 
                   onClick={handleSave}
-                  className="text-xs font-black uppercase tracking-[0.2em] text-gray-400 hover:text-black transition-colors flex items-center gap-2 group"
+                  disabled={isPending}
+                  className="text-xs font-black uppercase tracking-[0.2em] text-gray-400 hover:text-black transition-colors flex items-center gap-2 group disabled:opacity-50"
                 >
-                  Save Changes
-                  <span className="text-lg leading-none transform group-hover:translate-x-1 transition-transform">&rarr;</span>
+                  {isPending ? "Saving..." : "Save Changes"}
+                  {!isPending && <span className="text-lg leading-none transform group-hover:translate-x-1 transition-transform">&rarr;</span>}
                 </button>
               </div>
             )}

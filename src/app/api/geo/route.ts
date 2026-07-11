@@ -13,9 +13,9 @@ export async function GET(request: Request) {
 
   // Fallback for local development
   try {
-    const res = await fetch('https://ipapi.co/json/');
+    const res = await fetch('https://ipinfo.io/json');
     const data = await res.json();
-    return NextResponse.json({ city: data.city, region: data.region_code });
+    return NextResponse.json({ city: data.city, region: data.region });
   } catch (e) {
     return NextResponse.json({ city: 'UNKNOWN', region: '' });
   }

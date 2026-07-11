@@ -1,8 +1,16 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useTransition } from 'react';
 import { PawPrint } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import UserWidget from '@/components/UserWidget';
+import { saveEntry } from '@/app/actions/entry';
+import { askDoobie } from '@/app/actions/chat';
+
+type Message = {
+  role: 'user' | 'assistant';
+  content: string;
+  context?: any[];
+};
 
 const NodesLogo = ({ className }: { className?: string }) => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -16,6 +24,44 @@ const NodesLogo = ({ className }: { className?: string }) => (
 export default function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [meta, setMeta] = useState("...");
+  const [content, setContent] = useState("");
+  const [isPending, startTransition] = useTransition();
+  const [chatInput, setChatInput] = useState("");
+  const [chatHistory, setChatHistory] = useState<Message[]>([
+    { role: 'assistant', content: "hey, this is doobie. what brought you here today?" }
+  ]);
+  const [isChatPending, startChatTransition] = useTransition();
+
+  const handleSave = () => {
+    if (!content.trim() || isPending) return;
+    
+    startTransition(async () => {
+      const result = await saveEntry(content);
+      if (result.error) {
+        alert(result.error);
+      } else {
+        setContent(""); // clear the editor on success
+      }
+    });
+  };
+
+  const handleAskDoobie = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInput.trim() || isChatPending) return;
+
+    const userMessage = chatInput;
+    setChatInput("");
+    setChatHistory(prev => [...prev, { role: 'user', content: userMessage }]);
+
+    startChatTransition(async () => {
+      const result = await askDoobie(userMessage);
+      if (result.error) {
+        setChatHistory(prev => [...prev, { role: 'assistant', content: result.error! }]);
+      } else {
+        setChatHistory(prev => [...prev, { role: 'assistant', content: result.answer!, context: result.context }]);
+      }
+    });
+  };
 
   React.useEffect(() => {
     // ponytail: this internal edge route falls back to IP location on localhost, but uses native edge headers on vercel.
@@ -50,14 +96,20 @@ export default function Dashboard() {
             <textarea
               className="w-full h-full resize-none bg-transparent text-base leading-loose focus:outline-none placeholder:text-gray-400 text-gray-800"
               placeholder="Start writing..."
-              defaultValue={`The year is moving fast. Reflecting on productivity, mental clarity, and the persistent urge to optimize everything. It feels like a constant balance between structured goals and organic existence.\n\nI find myself revisiting previous challenges, wondering if the patterns I noticed last month are recurring today.\n\nI need to simplify. The focus must be on presence rather than productivity. The feeling of being overwhelmed often resurfaces when I neglect to pause and acknowledge small achievements.`}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              disabled={isPending}
             />
           </div>
           
           <div className="p-8 flex justify-end">
-          <button className="text-xs font-black uppercase tracking-[0.2em] text-gray-400 hover:text-black transition-colors flex items-center gap-2 group">
-            Leave a Trace
-            <span className="text-lg leading-none transform group-hover:translate-x-1 transition-transform">&rarr;</span>
+          <button 
+            onClick={handleSave}
+            disabled={!content.trim() || isPending}
+            className="text-xs font-black uppercase tracking-[0.2em] text-gray-400 hover:text-black transition-colors flex items-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isPending ? "Saving..." : "Leave a Trace"}
+            {!isPending && <span className="text-lg leading-none transform group-hover:translate-x-1 transition-transform">&rarr;</span>}
           </button>
         </div>
         </section>
@@ -66,31 +118,47 @@ export default function Dashboard() {
         {isSidebarOpen && (
           <section className="w-1/3 flex flex-col border-l border-white/50 bg-white/60 backdrop-blur-2xl shadow-xl">
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              <div className="space-y-1">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">You</p>
-                <p className="text-sm leading-relaxed text-gray-800 bg-white/50 p-3 rounded-lg shadow-sm border border-white/60">
-                  Can you show me past entries where I felt *overwhelmed* about work? I want to reflect.
-                </p>
-              </div>
-              <div className="space-y-3">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Doobie</p>
-                <div className="text-sm leading-relaxed text-gray-700 bg-black/5 p-3 rounded-lg border border-black/5">
-                  <p>Analyzing your entries. I found a few moments related to work stress and overwhelm.</p>
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    <span className="px-2 py-1 bg-white/80 text-[10px] font-mono rounded-md text-gray-600 shadow-sm border border-gray-100 cursor-pointer hover:bg-white transition-colors">[14 JUN 23 18:02]</span>
-                    <span className="px-2 py-1 bg-white/80 text-[10px] font-mono rounded-md text-gray-600 shadow-sm border border-gray-100 cursor-pointer hover:bg-white transition-colors">[11 OCT 23 11:55]</span>
+              
+              {chatHistory.map((msg, idx) => (
+                <div key={idx} className="space-y-1">
+                  <p className={`text-xs font-semibold uppercase tracking-wider ${msg.role === 'user' ? 'text-gray-500' : 'text-gray-400'}`}>
+                    {msg.role === 'user' ? 'You' : 'Doobie'}
+                  </p>
+                  <div className={`text-sm leading-relaxed p-3 rounded-lg border ${msg.role === 'user' ? 'text-gray-800 bg-white/50 shadow-sm border-white/60' : 'text-gray-700 bg-black/5 border-black/5'}`}>
+                    <p>{msg.content}</p>
+                    {msg.context && msg.context.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        {msg.context.map((c, i) => (
+                          <span key={i} className="px-2 py-1 bg-white/80 text-[10px] font-mono rounded-md text-gray-600 shadow-sm border border-gray-100" title={c.content}>
+                            [TRACE REF {i+1}]
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
+              ))}
+              
+              {isChatPending && (
+                <div className="space-y-1">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Doobie</p>
+                  <div className="text-sm leading-relaxed text-gray-700 bg-black/5 p-3 rounded-lg border border-black/5 animate-pulse">
+                    Thinking...
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="p-4 bg-white/40 border-t border-white/50 flex gap-2 backdrop-blur-md">
+            <form onSubmit={handleAskDoobie} className="p-4 bg-white/40 border-t border-white/50 flex gap-2 backdrop-blur-md">
               <input
                 type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                disabled={isChatPending}
                 placeholder="Ask Doobie about your entries..."
                 className="flex-1 bg-white/70 border border-white/80 shadow-inner rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-black/20 transition-all placeholder:text-gray-400"
               />
-            </div>
+            </form>
           </section>
         )}
       </div>
