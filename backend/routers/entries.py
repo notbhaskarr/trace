@@ -25,14 +25,18 @@ def create_entry(entry: EntryCreate, user=Depends(get_current_user)):
         raise HTTPException(status_code=400, detail="Content cannot be empty")
         
     # 1. Save Raw Entry
-    res = supabase.table("entries").insert({
-        "user_id": user.id,
-        "content": entry.content,
-        "location": entry.location
-    }).execute()
-    
+    try:
+        res = supabase.table("entries").insert({
+            "user_id": user.id,
+            "content": entry.content,
+            "location": entry.location
+        }).execute()
+    except Exception as e:
+        print(f"Supabase Insert Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+        
     if not res.data:
-        raise HTTPException(status_code=500, detail="Failed to save entry")
+        raise HTTPException(status_code=500, detail="Failed to save entry. RLS or unknown error.")
         
     new_entry = res.data[0]
     
