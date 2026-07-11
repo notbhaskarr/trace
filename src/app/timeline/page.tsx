@@ -22,11 +22,14 @@ export default function Timeline() {
   const [editContent, setEditContent] = useState("");
   const [isPending, startTransition] = useTransition();
 
+  // Safely grab the API URL and strip any accidental trailing slashes
+  const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  const apiUrl = rawApiUrl.replace(/\/$/, '');
+
   useEffect(() => {
     const loadEntries = async () => {
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
       const res = await fetch(`${apiUrl}/api/entries`, {
         headers: { 'Authorization': `Bearer ${session?.access_token}` }
       });
@@ -65,7 +68,6 @@ export default function Timeline() {
     startTransition(async () => {
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
       const res = await fetch(`${apiUrl}/api/entries/${selectedEntry.id}`, {
         method: 'PUT',
         headers: { 
@@ -98,7 +100,6 @@ export default function Timeline() {
       startTransition(async () => {
         const supabase = createClient();
         const { data: { session } } = await supabase.auth.getSession();
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
         const res = await fetch(`${apiUrl}/api/entries/${selectedEntry.id}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${session?.access_token}` }
