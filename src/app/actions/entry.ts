@@ -70,7 +70,7 @@ export async function saveEntry(content: string) {
       inputType: 'search_document',
     })
 
-    const embeddings = embedResponse.embeddings
+    const embeddings = embedResponse.embeddings as number[][]
 
     if (!Array.isArray(embeddings) || embeddings.length !== chunks.length) {
       console.error("Cohere returned invalid embeddings format")
@@ -168,7 +168,7 @@ export async function editEntry(id: string, newContent: string) {
         inputType: 'search_document',
       })
 
-      const embeddings = embedResponse.embeddings
+      const embeddings = embedResponse.embeddings as number[][]
 
       if (Array.isArray(embeddings) && embeddings.length === chunks.length) {
         const vectorRows = chunks.map((chunk, index) => ({

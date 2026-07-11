@@ -23,7 +23,7 @@ export async function askDoobie(query: string) {
       inputType: 'search_query',
     })
 
-    const queryEmbedding = embedResponse.embeddings[0]
+    const queryEmbedding = (embedResponse.embeddings as number[][])[0]
 
     // 2. Search Supabase for similar entries using our RPC function
     const { data: matchedChunks, error: matchError } = await supabase.rpc('match_entry_vectors', {
