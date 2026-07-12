@@ -29,20 +29,50 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [chatInput, setChatInput] = useState("");
   const [chatHistory, setChatHistory] = useState<Message[]>([
-    { role: 'assistant', content: "hey, this is doobie. what brought you here today?" }
+    { role: 'assistant', content: "hey, want to trace back some memories?" }
   ]);
   const [isChatPending, startChatTransition] = useTransition();
   const [selectedEntry, setSelectedEntry] = useState<any>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [userName, setUserName] = useState("");
+
+  const getDefaultMsg = (name: string): Message[] => [
+    { role: 'assistant', content: name ? `hey ${name}, want to trace back some memories?` : `hey, want to trace back some memories?` }
+  ];
 
   useEffect(() => {
-    setIsMounted(true);
-    const saved = localStorage.getItem('trace_chat_history');
-    if (saved) {
-      try {
-        setChatHistory(JSON.parse(saved));
-      } catch (e) {}
-    }
+    const initChat = async () => {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      let name = "";
+      if (session?.user?.user_metadata?.full_name) {
+        name = session.user.user_metadata.full_name.split(' ')[0].toLowerCase();
+      } else if (session?.user?.email) {
+        name = session.user.email.split('@')[0].toLowerCase();
+      }
+      setUserName(name);
+      const defaultMsg = getDefaultMsg(name);
+
+      const saved = localStorage.getItem('trace_chat_history');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          // Overwrite if it's just a default greeting
+          if (parsed.length === 1 && parsed[0].content.startsWith("hey")) {
+            setChatHistory(defaultMsg);
+          } else {
+            setChatHistory(parsed);
+          }
+        } catch (e) {
+          setChatHistory(defaultMsg);
+        }
+      } else {
+        setChatHistory(defaultMsg);
+      }
+      setIsMounted(true);
+    };
+    initChat();
   }, []);
 
   useEffect(() => {
@@ -94,8 +124,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const toggleChat = () => setIsSidebarOpen(prev => !prev);
 
   const clearChat = () => {
-    const defaultMsg: Message[] = [{ role: 'assistant', content: "hey, this is doobie. what brought you here today?" }];
-    setChatHistory(defaultMsg);
+    setChatHistory(getDefaultMsg(userName));
     localStorage.removeItem('trace_chat_history');
   };
 
