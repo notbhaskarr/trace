@@ -53,7 +53,7 @@ def retrieve(state: GraphState):
     
     match_res = user_client.rpc("match_entry_vectors", {
         "query_embedding": query_embedding,
-        "match_threshold": 0.5,
+        "match_threshold": 0.35,
         "match_count": 10,
         "p_user_id": user_id
     }).execute()
