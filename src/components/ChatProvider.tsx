@@ -371,8 +371,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
                 return (
                   <div key={idx} className={`flex w-full ${isUser ? 'justify-end' : 'justify-start gap-2'}`}>
                     {!isUser && (
-                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 mt-0.5 border border-gray-200 overflow-hidden">
-                        <img src="/doobie.png" alt="Doobie" className="w-full h-full object-cover opacity-80 mix-blend-multiply p-0.5" />
+                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 mt-0.5 border border-gray-200">
+                        <PawPrint className="w-4 h-4 text-gray-500 opacity-70" />
                       </div>
                     )}
                     <div className={`max-w-[85%] text-[13px] leading-relaxed p-3 rounded-2xl shadow-sm border ${
@@ -409,8 +409,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
               
               {isChatPending && (
                 <div className="flex w-full justify-start gap-2 animate-pulse">
-                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 mt-0.5 border border-gray-200 overflow-hidden">
-                    <img src="/doobie.png" alt="Doobie" className="w-full h-full object-cover opacity-80 mix-blend-multiply p-0.5" />
+                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 mt-0.5 border border-gray-200">
+                    <PawPrint className="w-4 h-4 text-gray-500 opacity-70" />
                   </div>
                   <div className="max-w-[85%] text-[13px] leading-relaxed p-3 rounded-2xl rounded-tl-sm bg-black/5 text-gray-700 border-black/5">
                     tracing...
