@@ -16,6 +16,9 @@ const NodesLogo = ({ className }: { className?: string }) => (
 );
 
 export default function Dashboard() {
+  const [meta, setMeta] = useState("...");
+  const [locationStr, setLocationStr] = useState("");
+  const [content, setContent] = useState("");
   const [isPending, startTransition] = useTransition();
 
   // Safely grab the API URL and strip any accidental trailing slashes
