@@ -15,6 +15,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </div>
         {children}
       </div>
+      <div className="absolute bottom-6 text-[11px] font-medium text-black/30 tracking-wide select-none">
+        slick .
+      </div>
     </main>
   );
 }
