@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useTransition, ReactNode, useEffect, useRef } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import Navbar from './Navbar';
+import { Eraser } from 'lucide-react';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -168,9 +169,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
                 <span className="text-[10px] font-black tracking-[0.2em] text-gray-400">DOOBIE</span>
                 <button 
                   onClick={clearChat}
-                  className="text-[10px] font-black uppercase tracking-[0.1em] text-gray-400 hover:text-black transition-colors"
+                  className="text-gray-400 hover:text-black transition-colors"
+                  title="Clear Chat History"
                 >
-                  Clear Slate
+                  <Eraser size={14} strokeWidth={2.5} />
                 </button>
               </div>
 
