@@ -70,12 +70,20 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   return (
     <ChatContext.Provider value={{ isSidebarOpen, toggleChat }}>
-      <div className="flex flex-col h-screen w-full overflow-hidden">
+      <div className="flex flex-col h-screen w-full overflow-hidden bg-gradient-to-br from-gray-100 via-white to-gray-200 text-black relative">
         
-        {/* Global Navbar */}
-        <Navbar />
+        {/* Decorative Background Elements */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+          <div className="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-indigo-100/40 rounded-full mix-blend-multiply filter blur-3xl opacity-70"></div>
+          <div className="absolute bottom-[-10%] right-[-10%] w-[40rem] h-[40rem] bg-stone-200/50 rounded-full mix-blend-multiply filter blur-3xl opacity-70"></div>
+        </div>
 
-        <div className="flex flex-1 overflow-hidden relative">
+        {/* Global Navbar */}
+        <div className="relative z-40">
+          <Navbar />
+        </div>
+
+        <div className="flex flex-1 overflow-hidden relative z-10">
           {/* Main Application Content */}
           <div className="flex-1 overflow-hidden relative">
             {children}
@@ -83,7 +91,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
           {/* Global Chat Sidebar */}
           {isSidebarOpen && (
-            <section className="w-1/3 flex flex-col border-l border-white/50 bg-white/60 backdrop-blur-2xl shadow-xl z-40 relative">
+            <section className="w-1/3 flex flex-col border-l border-white/50 bg-white/60 backdrop-blur-2xl shadow-xl z-30 relative">
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               {chatHistory.map((msg, idx) => (
                 <div key={idx} className="space-y-1">

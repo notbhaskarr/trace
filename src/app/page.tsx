@@ -59,14 +59,8 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <main className="flex flex-col h-screen w-full bg-gradient-to-br from-gray-100 via-white to-gray-200 text-black overflow-hidden relative">
+    <main className="flex flex-col h-full w-full overflow-hidden relative">
       
-      {/* Decorative Background Elements for Glassmorphism */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-indigo-100/40 rounded-full mix-blend-multiply filter blur-3xl opacity-70"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40rem] h-[40rem] bg-stone-200/50 rounded-full mix-blend-multiply filter blur-3xl opacity-70"></div>
-      </div>
-
       <UserWidget />
 
       {/* MAIN CONTENT AREA */}
