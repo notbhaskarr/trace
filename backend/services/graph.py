@@ -29,12 +29,12 @@ class GraphState(TypedDict):
 
 # Initialize the LLMs
 judge_llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
+    model="gemini-3.5-flash",
     google_api_key=GEMINI_API_KEY,
     temperature=0.0
 )
 chat_llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
+    model="gemini-3.5-flash",
     google_api_key=GEMINI_API_KEY,
     temperature=0.7
 )
