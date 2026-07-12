@@ -159,9 +159,14 @@ export default function Dashboard() {
                     {msg.context && msg.context.length > 0 && (
                       <div className="flex flex-wrap gap-2 mt-3">
                         {msg.context.map((c, i) => (
-                          <span key={i} className="px-2 py-1 bg-white/80 text-[10px] font-mono rounded-md text-gray-600 shadow-sm border border-gray-100" title={c.content}>
-                            [TRACE REF {i+1}]
-                          </span>
+                          <details key={i} className="group relative">
+                            <summary className="px-2 py-1 bg-white/80 hover:bg-white text-[10px] font-mono rounded-md text-gray-600 shadow-sm border border-gray-200 cursor-pointer list-none transition-colors">
+                              [TRACE REF {i+1}]
+                            </summary>
+                            <div className="absolute z-50 bottom-full mb-2 left-0 w-64 p-3 bg-white border border-gray-200 rounded-lg shadow-xl text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">
+                              {c.content}
+                            </div>
+                          </details>
                         ))}
                       </div>
                     )}
