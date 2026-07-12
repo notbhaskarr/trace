@@ -280,7 +280,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
                 <div className="space-y-1">
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Doobie</p>
                   <div className="text-sm leading-relaxed text-gray-700 bg-black/5 p-3 rounded-lg border border-black/5 animate-pulse">
-                    Tracing...
+                    tracing...
                   </div>
                 </div>
               )}
