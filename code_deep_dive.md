@@ -84,3 +84,16 @@ What exactly happens under the hood when you leave a trace and later ask Doobie 
 1. **Frontend Render**: `backend/routers/chat.py` sends the JSON response back to `ChatProvider.tsx`.
 2. **Overlay Link**: The ChatProvider renders Doobie's text. Because the backend returned the exact `context` used, the UI generates a clickable `[OCT 14 ENTRY]` pill below the message.
 3. **Read Mode**: If you click the pill, the `selectedEntry` state triggers the full-screen read-mode overlay in `ChatProvider.tsx`, allowing you to read the original botanical gardens trace in its entirety.
+
+---
+
+## 4. Voice-to-Text & Dual Translation Architecture
+
+To support users speaking in heavily code-mixed languages (like Hinglish), Trace employs a **Dual Translation Architecture** using specialized models from **Sarvam AI**. This ensures that the user's original sentiment and tone are preserved in the UI, while guaranteeing 100% semantic accuracy during AI retrieval.
+
+### The Setup
+- **Speech-to-Text (Frontend)**: The user clicks the Mic icon, and `src/app/page.tsx` records up to 30 seconds of audio. This audio blob is sent to `src/app/api/transcribe/route.ts`, which securely proxies it to Sarvam AI's **`saaras:v3`** model. This model excels at code-mixed Indian languages, returning the exact Hinglish text (e.g., "Aaj main market gaya..."). This preserves the cultural and emotional nuance of the user's voice for them to read on their timeline.
+- **Translation & Ingestion (Backend)**: When the user hits "Leave a Trace", the Hinglish text hits `backend/routers/entries.py`. Before chunking and embedding, the backend calls Sarvam's **`mayura:v1`** translation model. This model is explicitly fine-tuned to translate colloquial code-mixed Hinglish into formal English. 
+- **Dual Storage**: The database stores both the raw Hinglish (`content`) and the pure English (`english_translation`).
+- **Vectorization**: The backend strictly vectorizes the *English* translation. If we vectorized Hinglish, the RAG similarity search would degrade. By forcing all embeddings into pure English, we maintain a mathematically perfect vector space.
+- **Query Translation**: When a user asks Doobie a question in Hinglish, `backend/services/graph.py` instantly translates the query to English (again using `mayura:v1`) *before* executing the similarity search against the database. The retrieved context (which contains the English translation) is passed to Doobie, allowing the LLM to understand the context perfectly and respond back accurately.
