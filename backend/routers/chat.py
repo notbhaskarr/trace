@@ -14,9 +14,11 @@ def chat_doobie(req: ChatRequest, user=Depends(get_current_user), token: str = D
         # Invoke the LangGraph workflow
         initial_state = {
             "question": req.query,
+            "chat_history": req.chat_history,
             "user_id": user.id,
             "token": token,
             "documents": [],
+            "standalone_query": "",
             "answer": "",
             "attempts": 0,
             "judge_feedback": ""

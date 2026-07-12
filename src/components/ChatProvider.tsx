@@ -136,6 +136,12 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     setChatInput("");
     setChatHistory(prev => [...prev, { role: 'user', content: userMessage }]);
 
+    // Extract recent history (last 6 msgs), excluding the default greeting
+    const recentHistory = chatHistory
+      .filter(msg => !(msg.role === 'assistant' && msg.content.startsWith("hey ")))
+      .slice(-6)
+      .map(msg => ({ role: msg.role, content: msg.content }));
+
     startChatTransition(async () => {
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
@@ -146,7 +152,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session?.access_token}` 
         },
-        body: JSON.stringify({ query: userMessage })
+        body: JSON.stringify({ query: userMessage, chat_history: recentHistory })
       });
       const result = await res.json();
       

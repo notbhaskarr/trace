@@ -20,6 +20,8 @@ with open(os.path.join(SERVICES_DIR, "llmasjudgeprompt.txt"), "r") as f:
 # Define the State
 class GraphState(TypedDict):
     question: str
+    chat_history: List[Dict]
+    standalone_query: str
     user_id: str
     token: str
     documents: List[Dict]
@@ -39,11 +41,40 @@ chat_llm = ChatGoogleGenerativeAI(
     temperature=0.7
 )
 
+def rewrite_query(state: GraphState):
+    """
+    Rewrite the question to be a standalone query based on chat history.
+    """
+    question = state["question"]
+    chat_history = state.get("chat_history", [])
+    
+    if not chat_history:
+        return {"standalone_query": question}
+        
+    history_text = "\n".join([f"{msg['role'].upper()}: {msg['content']}" for msg in chat_history])
+    
+    prompt = f"""Given the following conversation and a follow-up question, rephrase the follow-up question to be a standalone search query. 
+If the question is already clear and standalone, do NOT change it. Do not invent keywords.
+
+Conversation History:
+{history_text}
+
+Follow-up Question: {question}
+Standalone Query:"""
+    
+    messages = [SystemMessage(content="You are an expert at optimizing search queries."), HumanMessage(content=prompt)]
+    response = chat_llm.invoke(messages)
+    
+    standalone_query = response.content.strip()
+    print(f"REWRITTEN QUERY: '{question}' -> '{standalone_query}'")
+    return {"standalone_query": standalone_query}
+
+
 def retrieve(state: GraphState):
     """
     Retrieve documents from the vector database.
     """
-    question = state["question"]
+    question = state.get("standalone_query") or state["question"]
     user_id = state["user_id"]
     token = state["token"]
     
@@ -100,12 +131,19 @@ def generate(state: GraphState):
     system_content = DOOBIE_SYSTEM_PROMPT.replace("{context_text}", context_text).replace("{query}", question)
     
     if judge_feedback:
-        system_content += f"\\n\\nWARNING - PREVIOUS ATTEMPT FAILED. FIX THIS: {judge_feedback}"
+        system_content += f"\n\nWARNING - PREVIOUS ATTEMPT FAILED. FIX THIS: {judge_feedback}"
         
-    messages = [
-        SystemMessage(content=system_content),
-        HumanMessage(content=question)
-    ]
+    messages = [SystemMessage(content=system_content)]
+    
+    chat_history = state.get("chat_history", [])
+    for msg in chat_history:
+        if msg["role"] == "user":
+            messages.append(HumanMessage(content=msg["content"]))
+        else:
+            from langchain_core.messages import AIMessage
+            messages.append(AIMessage(content=msg["content"]))
+            
+    messages.append(HumanMessage(content=question))
     
     response = chat_llm.invoke(messages)
     
@@ -203,12 +241,14 @@ def check_score(state: GraphState):
 # Compile Graph
 workflow = StateGraph(GraphState)
 
+workflow.add_node("rewrite_query", rewrite_query)
 workflow.add_node("retrieve", retrieve)
 workflow.add_node("generate", generate)
 workflow.add_node("evaluate_response", evaluate_response)
 
 # Edges
-workflow.set_entry_point("retrieve")
+workflow.set_entry_point("rewrite_query")
+workflow.add_edge("rewrite_query", "retrieve")
 workflow.add_edge("retrieve", "generate")
 workflow.add_edge("generate", "evaluate_response")
 

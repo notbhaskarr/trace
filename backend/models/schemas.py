@@ -10,3 +10,4 @@ class EntryUpdate(BaseModel):
 
 class ChatRequest(BaseModel):
     query: str
+    chat_history: list[dict] = []
