@@ -1,6 +1,5 @@
 from fastapi import Header, HTTPException
 from supabase import create_client, Client, ClientOptions
-import google.generativeai as genai
 import os
 from dotenv import load_dotenv
 
@@ -17,7 +16,6 @@ if not GEMINI_API_KEY:
     raise ValueError("Missing GEMINI_API_KEY environment variable.")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-genai.configure(api_key=GEMINI_API_KEY)
 
 # Authentication Dependency
 def get_current_user(authorization: str = Header(None)):
