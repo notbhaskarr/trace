@@ -91,8 +91,19 @@ def generate(state: GraphState):
     
     response = chat_llm.invoke(messages)
     
+    # Safely extract text in case the new model returns a list of blocks
+    answer_text = response.content
+    if isinstance(answer_text, list):
+        extracted = []
+        for part in answer_text:
+            if isinstance(part, dict) and "text" in part:
+                extracted.append(part["text"])
+            elif isinstance(part, str):
+                extracted.append(part)
+        answer_text = " ".join(extracted) if extracted else str(answer_text)
+    
     # Increment attempts
-    return {"answer": response.content, "attempts": attempts + 1}
+    return {"answer": answer_text, "attempts": attempts + 1}
 
 
 def evaluate_response(state: GraphState):
