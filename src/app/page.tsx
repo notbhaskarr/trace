@@ -70,7 +70,9 @@ export default function Dashboard() {
         <section className="flex-1 flex flex-col bg-white/40 backdrop-blur-xl">
           <header className="p-8 pb-4 flex justify-between items-start">
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight text-gray-900">OCTOBER 14, 2024</h2>
+              <h2 className="text-2xl font-semibold tracking-tight text-gray-900">
+                {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase()}
+              </h2>
               <p className="text-[10px] font-medium text-gray-500 mt-1">{meta}</p>
             </div>
           </header>
