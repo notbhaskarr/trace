@@ -17,33 +17,28 @@ def generate_embeddings(chunks: List[str]):
         return []
         
     enriched_chunks = [f"[Journal Entry] {c}" for c in chunks]
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:batchEmbedContents?key={GEMINI_API_KEY}"
-    
-    payload = {
-        "requests": [
-            {
-                "model": "models/text-embedding-004",
-                "content": {"parts": [{"text": text}]}
-            }
-            for text in enriched_chunks
-        ]
-    }
-    
-    response = requests.post(url, json=payload)
-    if not response.ok:
-        raise Exception(f"API Error {response.status_code}: {response.text}")
-        
-    data = response.json()
     embeddings = []
-    for emb in data.get("embeddings", []):
-        embeddings.append(emb["values"])
+    
+    for text in enriched_chunks:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key={GEMINI_API_KEY}"
+        payload = {
+            "model": "models/gemini-embedding-001",
+            "content": {"parts": [{"text": text}]}
+        }
+        
+        response = requests.post(url, json=payload)
+        if not response.ok:
+            raise Exception(f"API Error {response.status_code}: {response.text}")
+            
+        data = response.json()
+        embeddings.append(data["embedding"]["values"])
         
     return embeddings
 
 def generate_query_embedding(query: str):
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key={GEMINI_API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key={GEMINI_API_KEY}"
     payload = {
-        "model": "models/text-embedding-004",
+        "model": "models/gemini-embedding-001",
         "content": {"parts": [{"text": query}]}
     }
     
