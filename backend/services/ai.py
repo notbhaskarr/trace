@@ -1,7 +1,7 @@
 from typing import List
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from core.deps import GEMINI_API_KEY
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+import requests
 
 def chunk_text(text: str, max_chunk_size: int = 300, overlap: int = 50) -> List[str]:
     text_splitter = RecursiveCharacterTextSplitter(
@@ -12,16 +12,46 @@ def chunk_text(text: str, max_chunk_size: int = 300, overlap: int = 50) -> List[
     )
     return text_splitter.split_text(text)
 
-embeddings_model = GoogleGenerativeAIEmbeddings(
-    model="models/text-embedding-004", 
-    google_api_key=GEMINI_API_KEY
-)
-
 def generate_embeddings(chunks: List[str]):
+    if not chunks:
+        return []
+        
     enriched_chunks = [f"[Journal Entry] {c}" for c in chunks]
-    return embeddings_model.embed_documents(enriched_chunks)
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:batchEmbedContents?key={GEMINI_API_KEY}"
+    
+    payload = {
+        "requests": [
+            {
+                "model": "models/text-embedding-004",
+                "content": {"parts": [{"text": text}]}
+            }
+            for text in enriched_chunks
+        ]
+    }
+    
+    response = requests.post(url, json=payload)
+    if not response.ok:
+        raise Exception(f"API Error {response.status_code}: {response.text}")
+        
+    data = response.json()
+    embeddings = []
+    for emb in data.get("embeddings", []):
+        embeddings.append(emb["values"])
+        
+    return embeddings
 
 def generate_query_embedding(query: str):
-    return embeddings_model.embed_query(query)
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key={GEMINI_API_KEY}"
+    payload = {
+        "model": "models/text-embedding-004",
+        "content": {"parts": [{"text": query}]}
+    }
+    
+    response = requests.post(url, json=payload)
+    if not response.ok:
+        raise Exception(f"API Error {response.status_code}: {response.text}")
+        
+    data = response.json()
+    return data["embedding"]["values"]
 
 
