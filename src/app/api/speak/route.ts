@@ -13,8 +13,27 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'SARVAM_API_KEY is not set' }, { status: 500 });
     }
 
+    // Split text into chunks of <= 450 characters at punctuation marks to bypass 500 char limit
+    const chunks: string[] = [];
+    let currentText = text;
+    while (currentText.length > 0) {
+      if (currentText.length <= 450) {
+        chunks.push(currentText);
+        break;
+      }
+      
+      let splitIdx = currentText.lastIndexOf('.', 450);
+      if (splitIdx === -1) splitIdx = currentText.lastIndexOf('?', 450);
+      if (splitIdx === -1) splitIdx = currentText.lastIndexOf('!', 450);
+      if (splitIdx === -1) splitIdx = currentText.lastIndexOf(' ', 450);
+      if (splitIdx === -1) splitIdx = 450; // hard split if no spaces
+
+      chunks.push(currentText.substring(0, splitIdx + 1).trim());
+      currentText = currentText.substring(splitIdx + 1).trim();
+    }
+
     const payload = {
-      inputs: [text],
+      inputs: chunks,
       target_language_code: "hi-IN",
       speaker: "neha",
       pace: 1.0,
@@ -42,9 +61,9 @@ export async function POST(req: Request) {
       );
     }
 
-    // Sarvam returns the base64 encoded audio in the `audios` array
+    // Sarvam returns an array of base64 encoded audios corresponding to the inputs
     if (data.audios && data.audios.length > 0) {
-      return NextResponse.json({ audio: data.audios[0] });
+      return NextResponse.json({ audios: data.audios });
     } else {
       return NextResponse.json({ error: 'No audio generated' }, { status: 500 });
     }

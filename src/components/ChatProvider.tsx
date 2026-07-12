@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useTransition, ReactNode, u
 import { usePathname } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import Navbar from './Navbar';
-import { Eraser } from 'lucide-react';
+import { Eraser, Mic, Volume2, VolumeX } from 'lucide-react';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -46,6 +46,29 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // Voice Chat State
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const [isAutoSpeak, setIsAutoSpeak] = useState(false);
+  const [isDoobieSpeaking, setIsDoobieSpeaking] = useState(false);
+  const doobieAudioRef = useRef<HTMLAudioElement | null>(null);
+  const audioQueueRef = useRef<string[]>([]);
+
+  const playNextAudio = () => {
+    if (!doobieAudioRef.current) return;
+    if (audioQueueRef.current.length > 0) {
+      const nextBase64 = audioQueueRef.current.shift();
+      doobieAudioRef.current.src = `data:audio/wav;base64,${nextBase64}`;
+      doobieAudioRef.current.play().catch(e => console.error("Audio block", e));
+      setIsDoobieSpeaking(true);
+    } else {
+      setIsDoobieSpeaking(false);
+    }
+  };
+
   const toggleAudio = () => {
     setIsAudioPlaying(prev => !prev);
   };
@@ -66,6 +89,70 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const getDefaultMsg = (name: string): Message[] => [
     { role: 'assistant', content: name ? `hey ${name}, want to trace back some memories?` : `hey, want to trace back some memories?` }
   ];
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      const audioChunks: Blob[] = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) audioChunks.push(event.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        setIsTranscribing(true);
+        try {
+          const formData = new FormData();
+          formData.append('file', audioBlob);
+          const res = await fetch('/api/transcribe', { method: 'POST', body: formData });
+          const data = await res.json();
+          if (res.ok && data.transcript) {
+            setChatInput(prev => prev + (prev.endsWith(' ') || prev.length === 0 ? '' : ' ') + data.transcript);
+          }
+        } finally {
+          setIsTranscribing(false);
+        }
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      timeoutRef.current = setTimeout(() => {
+        if (mediaRecorderRef.current?.state === 'recording') stopRecording();
+      }, 29000);
+    } catch (e) {
+      alert("Could not access microphone.");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    }
+  };
+
+  const speakAnswer = async (text: string) => {
+    if (!isAutoSpeak) return;
+    try {
+      const res = await fetch('/api/speak', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      });
+      const data = await res.json();
+      if (res.ok && data.audios && data.audios.length > 0) {
+        audioQueueRef.current = data.audios;
+        playNextAudio();
+      }
+    } catch (e) {
+      console.error('Failed to speak', e);
+    }
+  };
 
   useEffect(() => {
     const initChat = async () => {
@@ -189,6 +276,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         setChatHistory(prev => [...prev, { role: 'assistant', content: result.detail || "Error connecting to Doobie." }]);
       } else {
         setChatHistory(prev => [...prev, { role: 'assistant', content: result.answer, context: result.context }]);
+        if (isAutoSpeak) {
+          speakAnswer(result.answer);
+        }
       }
     });
   };
@@ -196,6 +286,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   return (
     <ChatContext.Provider value={{ isSidebarOpen, toggleChat, isAudioPlaying, toggleAudio }}>
       <audio ref={audioRef} src="/rain.mp3" loop />
+      <audio ref={doobieAudioRef} onEnded={playNextAudio} />
       <div className="flex flex-col h-screen w-full overflow-hidden bg-gradient-to-br from-gray-100 via-white to-gray-200 text-black relative">
         
         {/* Decorative Background Elements */}
@@ -233,7 +324,24 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
               {/* Chat Header */}
               <div className="flex items-center justify-between px-6 pt-6 pb-2 border-b border-white/30">
-                <span className="text-[10px] font-black tracking-[0.2em] text-gray-400">DOOBIE</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-[10px] font-black tracking-[0.2em] text-gray-400">DOOBIE</span>
+                  <button 
+                    onClick={() => {
+                       if (isDoobieSpeaking && doobieAudioRef.current) {
+                          doobieAudioRef.current.pause();
+                          audioQueueRef.current = [];
+                          setIsDoobieSpeaking(false);
+                       } else {
+                          setIsAutoSpeak(!isAutoSpeak);
+                       }
+                    }}
+                    className={`transition-colors ${isDoobieSpeaking ? 'text-red-500 animate-pulse' : isAutoSpeak ? 'text-indigo-500' : 'text-gray-300 hover:text-gray-400'}`}
+                    title={isDoobieSpeaking ? "Stop Speaking" : isAutoSpeak ? "Auto-Speak ON" : "Auto-Speak OFF"}
+                  >
+                    {isAutoSpeak || isDoobieSpeaking ? <Volume2 size={14} strokeWidth={2.5} /> : <VolumeX size={14} strokeWidth={2.5} />}
+                  </button>
+                </div>
                 <button 
                   onClick={clearChat}
                   className="text-gray-400 hover:text-black transition-colors"
@@ -286,7 +394,16 @@ export function ChatProvider({ children }: { children: ReactNode }) {
               )}
             </div>
 
-            <form onSubmit={handleAskDoobie} className="p-4 bg-white/40 border-t border-white/50 flex gap-2 backdrop-blur-md">
+            <form onSubmit={handleAskDoobie} className="p-4 bg-white/40 border-t border-white/50 flex gap-2 backdrop-blur-md items-center">
+              <button
+                type="button"
+                onClick={isRecording ? stopRecording : startRecording}
+                disabled={isTranscribing || isChatPending}
+                className={`p-2 rounded-full transition-all shrink-0 ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'bg-gray-100 text-gray-500 hover:bg-black/5 hover:text-black'} ${isTranscribing ? 'opacity-50 cursor-wait' : ''}`}
+                title={isRecording ? "Stop Recording" : "Speak to Doobie"}
+              >
+                <Mic size={18} />
+              </button>
               <input
                 type="text"
                 value={chatInput}
