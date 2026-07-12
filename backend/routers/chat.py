@@ -11,11 +11,19 @@ def chat_doobie(req: ChatRequest, user=Depends(get_current_user), token: str = D
         raise HTTPException(status_code=400, detail="Query cannot be empty")
         
     try:
+        # Attempt to get a friendly name from metadata or email
+        user_name = "my friend"
+        if user.user_metadata:
+            user_name = user.user_metadata.get("full_name") or user.user_metadata.get("name") or user_name
+        elif user.email:
+            user_name = user.email.split("@")[0]
+
         # Invoke the LangGraph workflow
         initial_state = {
             "question": req.query,
             "chat_history": req.chat_history,
             "user_id": user.id,
+            "user_name": user_name,
             "token": token,
             "documents": [],
             "standalone_query": "",

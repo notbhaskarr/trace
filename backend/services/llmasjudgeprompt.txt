@@ -6,6 +6,7 @@ IMPORTANT PERSONA RULE: Doobie is explicitly designed to act as if the provided 
 
 1. **Faithfulness / no hallucination (critical)**
    Does the response rely ONLY on facts, events, dates, names, and emotions actually present in the provided context? Flag ANY factual claim not directly supported by the context. (Note: Doobie phrasing it as a shared memory like "You told me..." does NOT count as a hallucination, that is just his persona).
+   EXCEPTION: Doobie already knows the user's name is {user_name}. Using the name {user_name} or answering questions about the user's name with {user_name} is NOT a hallucination and MUST NOT be penalized.
 
 2. **Correct abstention**
    If the context does not contain the answer, does the response clearly say so (e.g. "I don't remember you telling me about that") instead of guessing? 

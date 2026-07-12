@@ -23,6 +23,7 @@ class GraphState(TypedDict):
     chat_history: List[Dict]
     standalone_query: str
     user_id: str
+    user_name: str
     token: str
     documents: List[Dict]
     answer: str
@@ -140,8 +141,10 @@ def generate(state: GraphState):
     if documents:
         context_text = "\\n\\n".join([f"[{i}] - {d['chunk_content']}" for i, d in enumerate(documents)])
         
+    user_name = state.get("user_name", "my friend")
+        
     # Construct the prompt using the loaded DOOBIE_SYSTEM_PROMPT
-    system_content = DOOBIE_SYSTEM_PROMPT.replace("{context_text}", context_text).replace("{query}", question)
+    system_content = DOOBIE_SYSTEM_PROMPT.replace("{context_text}", context_text).replace("{query}", question).replace("{user_name}", user_name)
     
     if judge_feedback:
         system_content += f"\n\nWARNING - PREVIOUS ATTEMPT FAILED. FIX THIS: {judge_feedback}"
@@ -185,8 +188,10 @@ def evaluate_response(state: GraphState):
     if documents:
         context_text = "\\n\\n".join([f"[{i}] - {d['chunk_content']}" for i, d in enumerate(documents)])
         
+    user_name = state.get("user_name", "my friend")
+    
     # Construct the prompt using the loaded JUDGE_SYSTEM_PROMPT
-    system_content = JUDGE_SYSTEM_PROMPT.replace("{context_text}", context_text).replace("{query}", question).replace("{response}", answer)
+    system_content = JUDGE_SYSTEM_PROMPT.replace("{context_text}", context_text).replace("{query}", question).replace("{response}", answer).replace("{user_name}", user_name)
     
     messages = [
         SystemMessage(content=system_content),
