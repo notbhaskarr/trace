@@ -371,14 +371,14 @@ export function ChatProvider({ children }: { children: ReactNode }) {
                 return (
                   <div key={idx} className={`flex w-full ${isUser ? 'justify-end' : 'justify-start gap-2'}`}>
                     {!isUser && (
-                      <div className="w-6 h-6 rounded-full bg-indigo-50 flex items-center justify-center shrink-0 mt-1 border border-indigo-100 text-indigo-400">
+                      <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center shrink-0 mt-1 border border-gray-200 text-gray-500">
                         <PawPrint size={12} strokeWidth={2.5} />
                       </div>
                     )}
                     <div className={`max-w-[85%] text-[13px] leading-relaxed p-3 rounded-2xl shadow-sm border ${
                       isUser 
                         ? 'bg-white text-gray-800 border-gray-200 rounded-tr-sm' 
-                        : 'bg-indigo-50/80 text-indigo-950 border-indigo-100/50 font-serif rounded-tl-sm'
+                        : 'bg-black/5 text-gray-700 border-black/5 rounded-tl-sm'
                     }`}>
                       <p>{msg.content}</p>
                       {msg.context && msg.context.length > 0 && (
@@ -409,10 +409,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
               
               {isChatPending && (
                 <div className="flex w-full justify-start gap-2 animate-pulse">
-                  <div className="w-6 h-6 rounded-full bg-indigo-50 flex items-center justify-center shrink-0 mt-1 border border-indigo-100 text-indigo-400">
+                  <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center shrink-0 mt-1 border border-gray-200 text-gray-500">
                     <PawPrint size={12} strokeWidth={2.5} />
                   </div>
-                  <div className="max-w-[85%] text-[13px] leading-relaxed p-3 rounded-2xl rounded-tl-sm bg-indigo-50/80 text-indigo-950 border border-indigo-100/50 font-serif">
+                  <div className="max-w-[85%] text-[13px] leading-relaxed p-3 rounded-2xl rounded-tl-sm bg-black/5 text-gray-700 border-black/5">
                     tracing...
                   </div>
                 </div>
