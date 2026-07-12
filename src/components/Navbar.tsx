@@ -42,7 +42,7 @@ export default function Navbar() {
         
         <button 
           onClick={toggleChat}
-          className="text-indigo-600 hover:text-indigo-700 transition-all flex items-center justify-center p-1.5 rounded-full"
+          className="text-black hover:text-gray-700 transition-all flex items-center justify-center p-1.5 rounded-full"
           title="Ask Doobie"
         >
           <PawPrint className="w-5 h-5" />
