@@ -59,8 +59,13 @@ def retrieve(state: GraphState):
     }).execute()
     
     documents = []
+    seen_content = set()
     if match_res.data:
-        documents = match_res.data
+        for d in match_res.data:
+            content = d.get('content', '').strip()
+            if content and content not in seen_content:
+                documents.append(d)
+                seen_content.add(content)
         
     return {"documents": documents, "attempts": state.get("attempts", 0), "judge_feedback": state.get("judge_feedback", "")}
 
