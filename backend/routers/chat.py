@@ -27,7 +27,7 @@ def chat_doobie(req: ChatRequest, user=Depends(get_current_user), token: str = D
         
         return {
             "answer": final_state["answer"],
-            "context": [{"id": c["id"], "content": c["content"]} for c in final_state["documents"]]
+            "context": final_state["documents"]
         }
         
     except Exception as e:

@@ -149,8 +149,19 @@ def evaluate_response(state: GraphState):
     feedback = ""
     filtered_documents = documents
     try:
+        # Safely extract text in case the new model returns a list of blocks
+        judge_text = response.content
+        if isinstance(judge_text, list):
+            extracted = []
+            for part in judge_text:
+                if isinstance(part, dict) and "text" in part:
+                    extracted.append(part["text"])
+                elif isinstance(part, str):
+                    extracted.append(part)
+            judge_text = " ".join(extracted) if extracted else str(judge_text)
+            
         # Clean response text just in case it has markdown ticks
-        text = response.content.replace("```json", "").replace("```", "").strip()
+        text = judge_text.replace("```json", "").replace("```", "").strip()
         score_json = json.loads(text)
         
         faithfulness = score_json.get("faithfulness_score", 5)
