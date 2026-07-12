@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useTransition, ReactNode, u
 import { usePathname } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import Navbar from './Navbar';
-import { Eraser, Mic, Volume2, VolumeX } from 'lucide-react';
+import { Eraser, Mic, Volume2, VolumeX, PawPrint } from 'lucide-react';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -32,9 +32,7 @@ export function useChat() {
 export function ChatProvider({ children }: { children: ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [chatInput, setChatInput] = useState("");
-  const [chatHistory, setChatHistory] = useState<Message[]>([
-    { role: 'assistant', content: "hey, want to trace back some memories?" }
-  ]);
+  const [chatHistory, setChatHistory] = useState<Message[]>([]);
   const [isChatPending, startChatTransition] = useTransition();
   const [selectedEntry, setSelectedEntry] = useState<any>(null);
   const [isMounted, setIsMounted] = useState(false);
@@ -53,6 +51,21 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [isAutoSpeak, setIsAutoSpeak] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('trace_auto_speak');
+    if (saved !== null) {
+      setIsAutoSpeak(saved === 'true');
+    }
+  }, []);
+
+  const handleToggleAutoSpeak = () => {
+    setIsAutoSpeak(prev => {
+      const next = !prev;
+      localStorage.setItem('trace_auto_speak', String(next));
+      return next;
+    });
+  };
   const [isDoobieSpeaking, setIsDoobieSpeaking] = useState(false);
   const doobieAudioRef = useRef<HTMLAudioElement | null>(null);
   const audioQueueRef = useRef<string[]>([]);
@@ -86,9 +99,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     }
   }, [isAudioPlaying]);
 
-  const getDefaultMsg = (name: string): Message[] => [
-    { role: 'assistant', content: name ? `hey ${name}, want to trace back some memories?` : `hey, want to trace back some memories?` }
-  ];
+  const getDefaultMsg = (name: string): Message[] => [];
 
   const startRecording = async () => {
     try {
@@ -324,8 +335,11 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
               {/* Chat Header */}
               <div className="flex items-center justify-between px-6 pt-6 pb-2 border-b border-white/30">
-                <div className="flex items-center gap-3">
-                  <span className="text-[10px] font-black tracking-[0.2em] text-gray-400">DOOBIE</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-base font-black tracking-[0.2em] text-gray-500">DOOBIE</span>
+                  <PawPrint size={16} className="text-gray-400" strokeWidth={2.5} />
+                </div>
+                <div className="flex items-center gap-4">
                   <button 
                     onClick={() => {
                        if (isDoobieSpeaking && doobieAudioRef.current) {
@@ -333,22 +347,22 @@ export function ChatProvider({ children }: { children: ReactNode }) {
                           audioQueueRef.current = [];
                           setIsDoobieSpeaking(false);
                        } else {
-                          setIsAutoSpeak(!isAutoSpeak);
+                          handleToggleAutoSpeak();
                        }
                     }}
                     className={`transition-colors ${isDoobieSpeaking ? 'text-red-500 animate-pulse' : isAutoSpeak ? 'text-indigo-500' : 'text-gray-300 hover:text-gray-400'}`}
                     title={isDoobieSpeaking ? "Stop Speaking" : isAutoSpeak ? "Auto-Speak ON" : "Auto-Speak OFF"}
                   >
-                    {isAutoSpeak || isDoobieSpeaking ? <Volume2 size={14} strokeWidth={2.5} /> : <VolumeX size={14} strokeWidth={2.5} />}
+                    {isAutoSpeak || isDoobieSpeaking ? <Volume2 size={16} strokeWidth={2.5} /> : <VolumeX size={16} strokeWidth={2.5} />}
+                  </button>
+                  <button 
+                    onClick={clearChat}
+                    className="text-gray-400 hover:text-black transition-colors"
+                    title="Clear Chat History"
+                  >
+                    <Eraser size={16} strokeWidth={2.5} />
                   </button>
                 </div>
-                <button 
-                  onClick={clearChat}
-                  className="text-gray-400 hover:text-black transition-colors"
-                  title="Clear Chat History"
-                >
-                  <Eraser size={14} strokeWidth={2.5} />
-                </button>
               </div>
 
             <div className="flex-1 overflow-y-auto p-6 space-y-6 pt-4">
