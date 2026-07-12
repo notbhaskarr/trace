@@ -158,7 +158,7 @@ export default function Dashboard() {
             <button
               onClick={isRecording ? stopRecording : startRecording}
               disabled={isTranscribing}
-              className={`p-3 rounded-full transition-all ${isRecording ? 'bg-red-500 text-white animate-pulse shadow-lg' : 'bg-gray-100 text-gray-500 hover:bg-black/5 hover:text-black'} ${isTranscribing ? 'opacity-50 cursor-wait' : ''}`}
+              className={`p-3 rounded-full transition-all ${isRecording ? 'bg-red-500 text-white animate-pulse shadow-lg' : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-600/30'} ${isTranscribing ? 'opacity-50 cursor-wait' : ''}`}
               title={isRecording ? "Stop Recording" : "Start Voice to Text"}
             >
               <Mic className="w-5 h-5" />
