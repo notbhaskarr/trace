@@ -65,7 +65,18 @@ Standalone Query:"""
     messages = [SystemMessage(content="You are an expert at optimizing search queries."), HumanMessage(content=prompt)]
     response = chat_llm.invoke(messages)
     
-    standalone_query = response.content.strip()
+    # Safely extract text in case the new model returns a list of blocks
+    standalone_query = response.content
+    if isinstance(standalone_query, list):
+        extracted = []
+        for part in standalone_query:
+            if isinstance(part, dict) and "text" in part:
+                extracted.append(part["text"])
+            elif isinstance(part, str):
+                extracted.append(part)
+        standalone_query = " ".join(extracted) if extracted else str(standalone_query)
+        
+    standalone_query = standalone_query.strip()
     print(f"REWRITTEN QUERY: '{question}' -> '{standalone_query}'")
     return {"standalone_query": standalone_query}
 
