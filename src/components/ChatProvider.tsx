@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useTransition, ReactNode, u
 import { usePathname } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import Navbar from './Navbar';
-import { Eraser, Mic, Volume2, VolumeX, PawPrint } from 'lucide-react';
+import { Eraser, Mic, Volume2, VolumeX, PawPrint, Send } from 'lucide-react';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -429,14 +429,24 @@ export function ChatProvider({ children }: { children: ReactNode }) {
               >
                 <Mic size={18} />
               </button>
-              <input
-                type="text"
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                disabled={isChatPending}
-                placeholder="Ask Doobie about your entries..."
-                className="flex-1 bg-white/70 border border-white/80 shadow-inner rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-black/20 transition-all placeholder:text-gray-400"
-              />
+              <div className="flex-1 relative flex items-center">
+                <input
+                  type="text"
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  disabled={isChatPending}
+                  placeholder="Message Doobie..."
+                  className="w-full bg-white/70 border border-white/80 shadow-inner rounded-md pl-4 pr-10 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-black/20 transition-all placeholder:text-gray-400"
+                />
+                <button
+                  type="submit"
+                  disabled={!chatInput.trim() || isChatPending}
+                  className="absolute right-2 p-1.5 text-gray-400 hover:text-gray-800 disabled:opacity-50 disabled:hover:text-gray-400 transition-colors"
+                  title="Send Message"
+                >
+                  <Send size={16} />
+                </button>
+              </div>
             </form>
           </section>
         )}
