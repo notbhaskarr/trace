@@ -68,8 +68,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'No audio generated' }, { status: 500 });
     }
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Speech generation error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
   }
 }
