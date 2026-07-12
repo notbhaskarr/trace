@@ -36,7 +36,7 @@ export async function POST(req: Request) {
       inputs: chunks,
       target_language_code: "hi-IN",
       speaker: "neha",
-      pace: 1.0,
+      pace: 1.15,
       speech_sample_rate: 8000,
       enable_preprocessing: true,
       model: "bulbul:v3"
