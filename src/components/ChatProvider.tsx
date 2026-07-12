@@ -335,9 +335,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
               {/* Chat Header */}
               <div className="flex items-center justify-between px-6 pt-6 pb-2 border-b border-white/30">
-                <div className="flex items-center gap-2">
-                  <span className="text-base font-black tracking-[0.2em] text-gray-500">DOOBIE</span>
-                  <PawPrint size={16} className="text-gray-400" strokeWidth={2.5} />
+                <div className="flex flex-col items-center justify-center -ml-2 mt-1">
+                  <img src="/doobie.png" alt="Doobie" className="h-14 w-14 opacity-80 mix-blend-multiply object-contain" />
+                  <span className="text-[10px] font-black tracking-[0.3em] text-gray-400 uppercase -mt-1 ml-1 select-none">DOOBIE</span>
                 </div>
                 <div className="flex items-center gap-4">
                   <button 
@@ -371,8 +371,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
                 return (
                   <div key={idx} className={`flex w-full ${isUser ? 'justify-end' : 'justify-start gap-2'}`}>
                     {!isUser && (
-                      <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center shrink-0 mt-1 border border-gray-200 text-gray-500">
-                        <PawPrint size={12} strokeWidth={2.5} />
+                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 mt-0.5 border border-gray-200 overflow-hidden">
+                        <img src="/doobie.png" alt="Doobie" className="w-full h-full object-cover opacity-80 mix-blend-multiply p-0.5" />
                       </div>
                     )}
                     <div className={`max-w-[85%] text-[13px] leading-relaxed p-3 rounded-2xl shadow-sm border ${
@@ -409,8 +409,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
               
               {isChatPending && (
                 <div className="flex w-full justify-start gap-2 animate-pulse">
-                  <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center shrink-0 mt-1 border border-gray-200 text-gray-500">
-                    <PawPrint size={12} strokeWidth={2.5} />
+                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 mt-0.5 border border-gray-200 overflow-hidden">
+                    <img src="/doobie.png" alt="Doobie" className="w-full h-full object-cover opacity-80 mix-blend-multiply p-0.5" />
                   </div>
                   <div className="max-w-[85%] text-[13px] leading-relaxed p-3 rounded-2xl rounded-tl-sm bg-black/5 text-gray-700 border-black/5">
                     tracing...
