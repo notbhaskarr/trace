@@ -1,5 +1,5 @@
 "use client";
-import React, { createContext, useContext, useState, useTransition, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useTransition, ReactNode, useEffect, useRef } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import Navbar from './Navbar';
 
@@ -32,6 +32,43 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   ]);
   const [isChatPending, startChatTransition] = useTransition();
   const [selectedEntry, setSelectedEntry] = useState<any>(null);
+
+  // Resize State
+  const [sidebarWidth, setSidebarWidth] = useState(400); // default width in px
+  const [isDragging, setIsDragging] = useState(false);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return;
+      
+      // Calculate width from the right edge of the screen
+      const newWidth = document.body.clientWidth - e.clientX;
+      
+      // Enforce min and max widths (e.g., 300px min, 800px max)
+      if (newWidth > 250 && newWidth < (document.body.clientWidth * 0.6)) {
+        setSidebarWidth(newWidth);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      // Prevent text selection while dragging
+      document.body.style.userSelect = 'none';
+    } else {
+      document.body.style.userSelect = '';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = '';
+    };
+  }, [isDragging]);
 
   const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
   const apiUrl = rawApiUrl.replace(/\/$/, '');
@@ -91,7 +128,18 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
           {/* Global Chat Sidebar */}
           {isSidebarOpen && (
-            <section className="w-1/3 flex flex-col border-l border-white/50 bg-white/60 backdrop-blur-2xl shadow-xl z-30 relative">
+            <section 
+              style={{ width: `${sidebarWidth}px` }}
+              className={`flex flex-col border-l border-white/50 bg-white/60 backdrop-blur-2xl shadow-xl z-30 relative shrink-0 ${isDragging ? 'pointer-events-none' : ''}`}
+            >
+              
+              {/* Invisible Drag Handle */}
+              <div 
+                onMouseDown={() => setIsDragging(true)}
+                className="absolute top-0 -left-1 w-2 h-full cursor-col-resize z-50 hover:bg-black/10 active:bg-black/20 transition-colors pointer-events-auto"
+                title="Drag to resize"
+              />
+
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               {chatHistory.map((msg, idx) => (
                 <div key={idx} className="space-y-1">
