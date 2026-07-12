@@ -61,11 +61,24 @@ def retrieve(state: GraphState):
     documents = []
     seen_content = set()
     if match_res.data:
-        for d in match_res.data:
-            content = d.get('content', '').strip()
-            if content and content not in seen_content:
-                documents.append(d)
-                seen_content.add(content)
+        # Fetch the full parent entries for these chunks to get the actual full content and date!
+        entry_ids = list(set([d['entry_id'] for d in match_res.data]))
+        if entry_ids:
+            entries_res = user_client.table("entries").select("id, content, created_at, location").in_("id", entry_ids).execute()
+            entry_map = {e['id']: e for e in entries_res.data}
+            
+            for d in match_res.data:
+                chunk_content = d.get('content', '').strip()
+                parent_entry = entry_map.get(d['entry_id'])
+                if chunk_content and chunk_content not in seen_content and parent_entry:
+                    documents.append({
+                        "chunk_content": chunk_content,
+                        "entry_id": d["entry_id"],
+                        "full_content": parent_entry["content"],
+                        "created_at": parent_entry["created_at"],
+                        "location": parent_entry.get("location")
+                    })
+                    seen_content.add(chunk_content)
         
     return {"documents": documents, "attempts": state.get("attempts", 0), "judge_feedback": state.get("judge_feedback", "")}
 
@@ -81,7 +94,7 @@ def generate(state: GraphState):
     
     context_text = ""
     if documents:
-        context_text = "\\n\\n".join([f"- {d['content']}" for d in documents])
+        context_text = "\\n\\n".join([f"[{i}] - {d['chunk_content']}" for i, d in enumerate(documents)])
         
     # Construct the prompt using the loaded DOOBIE_SYSTEM_PROMPT
     system_content = DOOBIE_SYSTEM_PROMPT.replace("{context_text}", context_text).replace("{query}", question)
@@ -121,7 +134,7 @@ def evaluate_response(state: GraphState):
     
     context_text = ""
     if documents:
-        context_text = "\\n\\n".join([f"- {d['content']}" for d in documents])
+        context_text = "\\n\\n".join([f"[{i}] - {d['chunk_content']}" for i, d in enumerate(documents)])
         
     # Construct the prompt using the loaded JUDGE_SYSTEM_PROMPT
     system_content = JUDGE_SYSTEM_PROMPT.replace("{context_text}", context_text).replace("{query}", question).replace("{response}", answer)
@@ -134,6 +147,7 @@ def evaluate_response(state: GraphState):
     response = judge_llm.invoke(messages)
     
     feedback = ""
+    filtered_documents = documents
     try:
         # Clean response text just in case it has markdown ticks
         text = response.content.replace("```json", "").replace("```", "").strip()
@@ -141,18 +155,26 @@ def evaluate_response(state: GraphState):
         
         faithfulness = score_json.get("faithfulness_score", 5)
         safety = str(score_json.get("safety_handling", "pass")).lower()
+        used_refs = score_json.get("used_references", [])
         
         if faithfulness <= 3 or safety == "fail":
             rationale = score_json.get("rationale", "Unknown failure.")
             hallucinations = score_json.get("hallucinated_claims", [])
             feedback = f"Failed criteria! Rationale: {rationale}. Hallucinations: {hallucinations}"
             print(f"JUDGE FAILED DOOBIE: {feedback}")
+        else:
+            # Filter documents to only those used by Doobie
+            if isinstance(used_refs, list):
+                # Ensure indices are within bounds
+                valid_refs = [r for r in used_refs if isinstance(r, int) and 0 <= r < len(documents)]
+                filtered_documents = [documents[i] for i in valid_refs]
+            
     except Exception as e:
         print(f"Judge parsing failed: {e}")
         # If the judge fails to parse, we pass the response to be safe and avoid loops
         pass
         
-    return {"judge_feedback": feedback}
+    return {"judge_feedback": feedback, "documents": filtered_documents}
 
 
 def check_score(state: GraphState):

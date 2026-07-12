@@ -25,6 +25,7 @@ Return a JSON object:
 {
   "faithfulness_score": 1-5,
   "hallucinated_claims": ["list any specific unsupported claims, or empty list"],
+  "used_references": [list of integers corresponding to the bracketed numbers (e.g. [0], [2]) of the journal contexts that Doobie actually used or relied on to answer. Empty list if none were used],
   "correct_abstention": true/false/"not_applicable",
   "tone_score": 1-5,
   "emotional_sensitivity_score": 1-5,

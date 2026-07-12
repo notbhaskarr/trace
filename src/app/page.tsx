@@ -25,6 +25,7 @@ export default function Dashboard() {
   const [meta, setMeta] = useState("...");
   const [locationStr, setLocationStr] = useState("");
   const [content, setContent] = useState("");
+  const [selectedEntry, setSelectedEntry] = useState<any>(null);
   const [isPending, startTransition] = useTransition();
   const [chatInput, setChatInput] = useState("");
   const [chatHistory, setChatHistory] = useState<Message[]>([
@@ -158,16 +159,23 @@ export default function Dashboard() {
                     <p>{msg.content}</p>
                     {msg.context && msg.context.length > 0 && (
                       <div className="flex flex-wrap gap-2 mt-3">
-                        {msg.context.map((c, i) => (
-                          <details key={i} className="group relative">
-                            <summary className="px-2 py-1 bg-white/80 hover:bg-white text-[10px] font-mono rounded-md text-gray-600 shadow-sm border border-gray-200 cursor-pointer list-none transition-colors">
-                              [TRACE REF {i+1}]
-                            </summary>
-                            <div className="absolute z-50 bottom-full mb-2 left-0 w-64 p-3 bg-white border border-gray-200 rounded-lg shadow-xl text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">
-                              {c.content}
-                            </div>
-                          </details>
-                        ))}
+                        {msg.context.map((c, i) => {
+                          let dateStr = `TRACE REF ${i+1}`;
+                          if (c.created_at) {
+                            dateStr = new Date(c.created_at).toLocaleDateString('en-US', {
+                              month: 'short', day: 'numeric'
+                            }).toUpperCase() + " ENTRY";
+                          }
+                          return (
+                            <button 
+                              key={i}
+                              onClick={() => setSelectedEntry(c)}
+                              className="px-2 py-1 bg-white/80 hover:bg-white text-[10px] font-mono rounded-md text-gray-600 shadow-sm border border-gray-200 cursor-pointer transition-colors"
+                            >
+                              [{dateStr}]
+                            </button>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -197,6 +205,47 @@ export default function Dashboard() {
           </section>
         )}
       </div>
+
+      {/* DETAIL OVERLAY */}
+      {selectedEntry && (
+        <div className="fixed inset-0 z-50 flex flex-col bg-white overflow-hidden animate-in fade-in duration-200">
+          
+          {/* Overlay Header */}
+          <div className="flex items-center justify-between p-6 px-8 border-b border-gray-100">
+            <h2 className="text-xs font-black tracking-[0.2em] text-gray-400">
+              {selectedEntry.created_at ? (
+                <>
+                  {new Date(selectedEntry.created_at).toLocaleDateString('en-US', {
+                    month: 'long', day: '2-digit', year: 'numeric'
+                  }).toUpperCase()} • {new Date(selectedEntry.created_at).toLocaleTimeString('en-US', {
+                    hour: 'numeric', minute: '2-digit'
+                  })}
+                </>
+              ) : "TRACE REFERENCE"}
+            </h2>
+            {selectedEntry.location && <h2 className="text-[10px] font-black tracking-[0.2em] text-gray-300 ml-4">{selectedEntry.location}</h2>}
+            <div className="flex-1"></div>
+            <button 
+              onClick={() => setSelectedEntry(null)}
+              className="text-gray-400 hover:text-black transition-colors"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 6L6 18M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+
+          {/* Overlay Body */}
+          <div className="flex-1 overflow-y-auto p-8 relative">
+            <div className="max-w-5xl mx-auto h-full flex flex-col">
+                <p className="text-lg text-black leading-relaxed whitespace-pre-wrap font-sans">
+                  {selectedEntry.full_content || selectedEntry.content || selectedEntry.chunk_content}
+                </p>
+            </div>
+          </div>
+        </div>
+      )}
+
     </main>
   );
 }
