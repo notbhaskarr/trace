@@ -13,7 +13,7 @@ def chat_doobie(req: ChatRequest, user=Depends(get_current_user), token: str = D
     try:
         user_name = None
         if user.user_metadata:
-            user_name = user.user_metadata.get("full_name") or user.user_metadata.get("name")
+            user_name = user.user_metadata.get("first_name") or user.user_metadata.get("full_name") or user.user_metadata.get("name")
             
         if not user_name and user.email:
             user_name = user.email.split("@")[0]
