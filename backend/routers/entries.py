@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from core.deps import get_current_user, get_auth_token, SUPABASE_URL, SUPABASE_KEY
 from supabase import create_client, ClientOptions
 from models.schemas import EntryCreate, EntryUpdate
-from services.ai import chunk_text, generate_embeddings
+from services.ai import chunk_text, generate_embeddings, translate_to_english
 
 router = APIRouter()
 
@@ -28,11 +28,13 @@ def create_entry(entry: EntryCreate, user=Depends(get_current_user), token: str 
         
     user_client = create_client(SUPABASE_URL, SUPABASE_KEY, options=ClientOptions(headers={"Authorization": f"Bearer {token}"}))
         
-    # 1. Save Raw Entry
+    # 1. Translate and Save Raw Entry
+    english_translation = translate_to_english(entry.content)
     try:
         res = user_client.table("entries").insert({
             "user_id": user.id,
             "content": entry.content,
+            "english_translation": english_translation,
             "location": entry.location
         }).execute()
     except Exception as e:
@@ -44,8 +46,8 @@ def create_entry(entry: EntryCreate, user=Depends(get_current_user), token: str 
         
     new_entry = res.data[0]
     
-    # 2. Chunk and Vectorize
-    chunks = chunk_text(entry.content)
+    # 2. Chunk and Vectorize (Using the English Translation!)
+    chunks = chunk_text(english_translation)
     if chunks:
         try:
             embeddings = generate_embeddings(chunks)
@@ -69,14 +71,18 @@ def create_entry(entry: EntryCreate, user=Depends(get_current_user), token: str 
 def update_entry(entry_id: str, entry: EntryUpdate, user=Depends(get_current_user), token: str = Depends(get_auth_token)):
     user_client = create_client(SUPABASE_URL, SUPABASE_KEY, options=ClientOptions(headers={"Authorization": f"Bearer {token}"}))
     
-    # 1. Update the raw entry
-    user_client.table("entries").update({"content": entry.content}).eq("id", entry_id).eq("user_id", user.id).execute()
+    # 1. Update the raw entry and its translation
+    english_translation = translate_to_english(entry.content)
+    user_client.table("entries").update({
+        "content": entry.content,
+        "english_translation": english_translation
+    }).eq("id", entry_id).eq("user_id", user.id).execute()
     
     # 2. Delete old vectors
     user_client.table("entry_vectors").delete().eq("entry_id", entry_id).eq("user_id", user.id).execute()
     
-    # 3. Generate new chunks and embeddings
-    chunks = chunk_text(entry.content)
+    # 3. Generate new chunks and embeddings (Using the English Translation!)
+    chunks = chunk_text(english_translation)
     if chunks:
         try:
             embeddings = generate_embeddings(chunks)

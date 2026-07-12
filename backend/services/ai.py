@@ -1,5 +1,5 @@
 from typing import List
-from core.deps import GEMINI_API_KEY
+from core.deps import GEMINI_API_KEY, SARVAM_API_KEY
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 import requests
 
@@ -49,4 +49,27 @@ def generate_query_embedding(query: str):
     data = response.json()
     return data["embedding"]["values"]
 
-
+def translate_to_english(text: str) -> str:
+    url = "https://api.sarvam.ai/translate"
+    payload = {
+        "input": text,
+        "source_language_code": "hi-IN",
+        "target_language_code": "en-IN",
+        "speaker_gender": "Male",
+        "mode": "formal",
+        "model": "mayura:v1"
+    }
+    headers = {
+        "api-subscription-key": SARVAM_API_KEY,
+        "Content-Type": "application/json"
+    }
+    try:
+        response = requests.post(url, json=payload, headers=headers)
+        if not response.ok:
+            print(f"Translation failed: {response.text}")
+            return text
+        data = response.json()
+        return data.get("translated_text", text)
+    except Exception as e:
+        print(f"Translation exception: {e}")
+        return text

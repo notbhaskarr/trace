@@ -6,7 +6,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import SystemMessage, HumanMessage
 from core.deps import GEMINI_API_KEY, SUPABASE_URL, SUPABASE_KEY
 from supabase import create_client, ClientOptions
-from services.ai import generate_query_embedding
+from services.ai import generate_query_embedding, translate_to_english
 
 # Load prompts
 SERVICES_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -89,7 +89,9 @@ def retrieve(state: GraphState):
     user_id = state["user_id"]
     token = state["token"]
     
-    query_embedding = generate_query_embedding(question)
+    # Translate query to English before vectorizing to match the english_translation column in DB
+    english_query = translate_to_english(question)
+    query_embedding = generate_query_embedding(english_query)
     
     user_client = create_client(SUPABASE_URL, SUPABASE_KEY, options=ClientOptions(headers={"Authorization": f"Bearer {token}"}))
     

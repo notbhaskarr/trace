@@ -9,11 +9,14 @@ load_dotenv(dotenv_path="../.env.local")
 SUPABASE_URL = os.environ.get("NEXT_PUBLIC_SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("NEXT_PUBLIC_SUPABASE_ANON_KEY")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+SARVAM_API_KEY = os.environ.get("SARVAM_API_KEY")
 
 if not SUPABASE_URL or not SUPABASE_KEY:
     raise ValueError("Missing Supabase environment variables.")
 if not GEMINI_API_KEY:
     raise ValueError("Missing GEMINI_API_KEY environment variable.")
+if not SARVAM_API_KEY:
+    raise ValueError("Missing SARVAM_API_KEY environment variable.")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
