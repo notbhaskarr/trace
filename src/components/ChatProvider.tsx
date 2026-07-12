@@ -1,5 +1,6 @@
 "use client";
 import React, { createContext, useContext, useState, useTransition, ReactNode, useEffect, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import Navbar from './Navbar';
 import { Eraser } from 'lucide-react';
@@ -35,6 +36,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [selectedEntry, setSelectedEntry] = useState<any>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [userName, setUserName] = useState("");
+  const pathname = usePathname();
+  const showNavbar = pathname !== '/login' && pathname !== '/signup';
 
   const getDefaultMsg = (name: string): Message[] => [
     { role: 'assistant', content: name ? `hey ${name}, want to trace back some memories?` : `hey, want to trace back some memories?` }
@@ -177,9 +180,11 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         </div>
 
         {/* Global Navbar */}
-        <div className="relative z-40">
-          <Navbar />
-        </div>
+        {showNavbar && (
+          <div className="relative z-40">
+            <Navbar />
+          </div>
+        )}
 
         <div className="flex flex-1 overflow-hidden relative z-10">
           {/* Main Application Content */}
