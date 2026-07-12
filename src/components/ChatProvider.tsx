@@ -366,42 +366,53 @@ export function ChatProvider({ children }: { children: ReactNode }) {
               </div>
 
             <div className="flex-1 overflow-y-auto p-6 space-y-6 pt-4">
-              {chatHistory.map((msg, idx) => (
-                <div key={idx} className="space-y-1">
-                  <p className={`text-xs font-semibold uppercase tracking-wider ${msg.role === 'user' ? 'text-gray-500' : 'text-gray-400'}`}>
-                    {msg.role === 'user' ? 'You' : 'Doobie'}
-                  </p>
-                  <div className={`text-sm leading-relaxed p-3 rounded-lg border ${msg.role === 'user' ? 'text-gray-800 bg-white/50 shadow-sm border-white/60' : 'text-gray-700 bg-black/5 border-black/5'}`}>
-                    <p>{msg.content}</p>
-                    {msg.context && msg.context.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        {msg.context.map((c, i) => {
-                          let dateStr = `TRACE REF ${i+1}`;
-                          if (c.created_at) {
-                            dateStr = new Date(c.created_at).toLocaleDateString('en-US', {
-                              month: 'short', day: 'numeric'
-                            }).toUpperCase() + " ENTRY";
-                          }
-                          return (
-                            <button 
-                              key={i}
-                              onClick={() => setSelectedEntry(c)}
-                              className="px-2 py-1 bg-white/80 hover:bg-white text-[10px] font-mono rounded-md text-gray-600 shadow-sm border border-gray-200 cursor-pointer transition-colors"
-                            >
-                              [{dateStr}]
-                            </button>
-                          );
-                        })}
+              {chatHistory.map((msg, idx) => {
+                const isUser = msg.role === 'user';
+                return (
+                  <div key={idx} className={`flex w-full ${isUser ? 'justify-end' : 'justify-start gap-2'}`}>
+                    {!isUser && (
+                      <div className="w-6 h-6 rounded-full bg-indigo-50 flex items-center justify-center shrink-0 mt-1 border border-indigo-100 text-indigo-400">
+                        <PawPrint size={12} strokeWidth={2.5} />
                       </div>
                     )}
+                    <div className={`max-w-[85%] text-[13px] leading-relaxed p-3 rounded-2xl shadow-sm border ${
+                      isUser 
+                        ? 'bg-white text-gray-800 border-gray-200 rounded-tr-sm' 
+                        : 'bg-indigo-50/80 text-indigo-950 border-indigo-100/50 font-serif rounded-tl-sm'
+                    }`}>
+                      <p>{msg.content}</p>
+                      {msg.context && msg.context.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          {msg.context.map((c, i) => {
+                            let dateStr = `TRACE REF ${i+1}`;
+                            if (c.created_at) {
+                              dateStr = new Date(c.created_at).toLocaleDateString('en-US', {
+                                month: 'short', day: 'numeric'
+                              }).toUpperCase() + " ENTRY";
+                            }
+                            return (
+                              <button 
+                                key={i}
+                                onClick={() => setSelectedEntry(c)}
+                                className="px-2 py-1 bg-white/80 hover:bg-white text-[9px] font-mono rounded-md text-gray-500 shadow-sm border border-gray-200 cursor-pointer transition-colors"
+                              >
+                                [{dateStr}]
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               
               {isChatPending && (
-                <div className="space-y-1">
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Doobie</p>
-                  <div className="text-sm leading-relaxed text-gray-700 bg-black/5 p-3 rounded-lg border border-black/5 animate-pulse">
+                <div className="flex w-full justify-start gap-2 animate-pulse">
+                  <div className="w-6 h-6 rounded-full bg-indigo-50 flex items-center justify-center shrink-0 mt-1 border border-indigo-100 text-indigo-400">
+                    <PawPrint size={12} strokeWidth={2.5} />
+                  </div>
+                  <div className="max-w-[85%] text-[13px] leading-relaxed p-3 rounded-2xl rounded-tl-sm bg-indigo-50/80 text-indigo-950 border border-indigo-100/50 font-serif">
                     tracing...
                   </div>
                 </div>
