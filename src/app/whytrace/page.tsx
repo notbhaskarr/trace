@@ -1,6 +1,5 @@
 import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
 
 export default function WhyTracePage() {
   return (
@@ -14,14 +13,6 @@ export default function WhyTracePage() {
 
       <main className="flex-1 relative z-10">
         
-        {/* Navigation */}
-        <nav className="p-8 md:p-12">
-          <Link href="/" className="inline-flex items-center gap-2 text-xs font-black tracking-[0.2em] text-gray-400 hover:text-gray-900 transition-colors uppercase">
-            <ArrowLeft size={14} strokeWidth={2.5} />
-            Back to App
-          </Link>
-        </nav>
-
         {/* Hero Section */}
         <section className="px-8 md:px-24 pt-12 pb-32 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-1000">
           <h2 className="text-xs font-black tracking-[0.2em] text-gray-400 mb-6 uppercase">The Problem</h2>
