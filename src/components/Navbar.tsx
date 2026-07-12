@@ -1,13 +1,14 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { PawPrint } from 'lucide-react';
+import { PawPrint, Headphones } from 'lucide-react';
 import { useChat } from './ChatProvider';
 
 export default function Navbar() {
-  const { toggleChat } = useChat();
+  const { toggleChat, isAudioPlaying, toggleAudio } = useChat();
   const pathname = usePathname();
   const isTimeline = pathname === '/timeline';
+
   return (
     <header className="relative z-20 w-full flex items-center justify-between p-6 px-8 border-b border-white/50 bg-white/40 backdrop-blur-md shadow-sm">
       <div className="flex items-center gap-2">
@@ -31,6 +32,13 @@ export default function Navbar() {
              <span className="text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors cursor-pointer mr-2">Past Traces</span>
           </Link>
         )}
+        <button 
+          onClick={toggleAudio}
+          className={`transition-all flex items-center justify-center p-2 rounded-full mr-4 ${isAudioPlaying ? 'text-black bg-gray-100 shadow-inner' : 'text-gray-400 hover:text-black hover:bg-black/5'}`}
+          title="Toggle Ambient Sound"
+        >
+          <Headphones className="w-5 h-5" />
+        </button>
         
         <button 
           onClick={toggleChat}

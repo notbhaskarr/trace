@@ -14,6 +14,9 @@ type Message = {
 type ChatContextType = {
   isSidebarOpen: boolean;
   toggleChat: () => void;
+  // Sound fields
+  isAudioPlaying: boolean;
+  toggleAudio: () => void;
 };
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -38,6 +41,27 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [userName, setUserName] = useState("");
   const pathname = usePathname();
   const showNavbar = pathname !== '/login' && pathname !== '/signup';
+
+  // Sound State
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const toggleAudio = () => {
+    setIsAudioPlaying(prev => !prev);
+  };
+
+  useEffect(() => {
+    if (audioRef.current) {
+      if (isAudioPlaying) {
+        audioRef.current.play().catch(e => {
+          console.log("Audio play blocked", e);
+          setIsAudioPlaying(false);
+        });
+      } else {
+        audioRef.current.pause();
+      }
+    }
+  }, [isAudioPlaying]);
 
   const getDefaultMsg = (name: string): Message[] => [
     { role: 'assistant', content: name ? `hey ${name}, want to trace back some memories?` : `hey, want to trace back some memories?` }
@@ -170,7 +194,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ChatContext.Provider value={{ isSidebarOpen, toggleChat }}>
+    <ChatContext.Provider value={{ isSidebarOpen, toggleChat, isAudioPlaying, toggleAudio }}>
+      <audio ref={audioRef} src="/rain.mp3" loop />
       <div className="flex flex-col h-screen w-full overflow-hidden bg-gradient-to-br from-gray-100 via-white to-gray-200 text-black relative">
         
         {/* Decorative Background Elements */}
