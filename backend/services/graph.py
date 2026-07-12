@@ -55,7 +55,7 @@ def retrieve(state: GraphState):
         "query_embedding": query_embedding,
         "match_threshold": 0.15,
         "match_count": 10,
-        "user_id_param": user_id
+        "p_user_id": user_id
     }).execute()
     
     documents = []
