@@ -156,7 +156,7 @@ def generate(state: GraphState):
             from langchain_core.messages import AIMessage
             messages.append(AIMessage(content=msg["content"]))
             
-    messages.append(HumanMessage(content=question))
+    messages.append(HumanMessage(content=question + "\n\n[CRITICAL INSTRUCTION: You MUST reply entirely in the exact same language and dialect as my question above. If I ask in Hinglish, you MUST reply in Hinglish. Do not reply in English unless my question is in English.]"))
     
     response = chat_llm.invoke(messages)
     
