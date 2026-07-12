@@ -68,7 +68,6 @@ export default function Dashboard() {
       </div>
 
       <UserWidget />
-      <Navbar />
 
       {/* MAIN CONTENT AREA */}
       <div className="flex-1 flex overflow-hidden relative z-10">

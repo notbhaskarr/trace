@@ -1,10 +1,13 @@
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { PawPrint } from 'lucide-react';
 import { useChat } from './ChatProvider';
 
-export default function Navbar({ isTimeline = false }: { isTimeline?: boolean }) {
+export default function Navbar() {
   const { toggleChat } = useChat();
+  const pathname = usePathname();
+  const isTimeline = pathname === '/timeline';
   return (
     <header className="relative z-20 w-full flex items-center justify-between p-6 px-8 border-b border-white/50 bg-white/40 backdrop-blur-md shadow-sm">
       <div className="flex items-center gap-2">

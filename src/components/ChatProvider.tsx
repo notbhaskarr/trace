@@ -1,6 +1,7 @@
 "use client";
 import React, { createContext, useContext, useState, useTransition, ReactNode } from 'react';
 import { createClient } from '@/utils/supabase/client';
+import Navbar from './Navbar';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -69,15 +70,20 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   return (
     <ChatContext.Provider value={{ isSidebarOpen, toggleChat }}>
-      <div className="flex h-screen w-full overflow-hidden">
-        {/* Main Application Content */}
-        <div className="flex-1 overflow-hidden relative">
-          {children}
-        </div>
+      <div className="flex flex-col h-screen w-full overflow-hidden">
+        
+        {/* Global Navbar */}
+        <Navbar />
 
-        {/* Global Chat Sidebar */}
-        {isSidebarOpen && (
-          <section className="w-1/3 flex flex-col border-l border-white/50 bg-white/60 backdrop-blur-2xl shadow-xl z-40 relative">
+        <div className="flex flex-1 overflow-hidden relative">
+          {/* Main Application Content */}
+          <div className="flex-1 overflow-hidden relative">
+            {children}
+          </div>
+
+          {/* Global Chat Sidebar */}
+          {isSidebarOpen && (
+            <section className="w-1/3 flex flex-col border-l border-white/50 bg-white/60 backdrop-blur-2xl shadow-xl z-40 relative">
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               {chatHistory.map((msg, idx) => (
                 <div key={idx} className="space-y-1">
@@ -133,6 +139,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
             </form>
           </section>
         )}
+        </div>
       </div>
 
       {/* Global Detail Overlay */}

@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect, useTransition } from 'react';
 import Link from 'next/link';
-import Navbar from '@/components/Navbar';
 import UserWidget from '@/components/UserWidget';
 import { createClient } from '@/utils/supabase/client';
 
@@ -126,7 +125,6 @@ export default function Timeline() {
       </div>
 
       <UserWidget />
-      <Navbar isTimeline={true} />
 
       {/* TIMELINE FEED */}
       <div className="flex-1 overflow-y-auto relative z-10 p-8 pb-32">
