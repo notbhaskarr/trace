@@ -46,7 +46,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       const { data: { session } } = await supabase.auth.getSession();
       
       let name = "";
-      if (session?.user?.user_metadata?.full_name) {
+      if (session?.user?.user_metadata?.first_name) {
+        name = session.user.user_metadata.first_name.toLowerCase();
+      } else if (session?.user?.user_metadata?.full_name) {
         name = session.user.user_metadata.full_name.split(' ')[0].toLowerCase();
       } else if (session?.user?.email) {
         name = session.user.email.split('@')[0].toLowerCase();
