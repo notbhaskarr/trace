@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 export default function WhyTracePage() {
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans selection:bg-blue-200">
+    <div className="h-full overflow-y-auto bg-gray-50 text-gray-900 font-sans selection:bg-blue-200">
       <main className="max-w-3xl mx-auto px-6 py-24 md:py-32">
         <header className="mb-16">
           <Link href="/" className="text-blue-600 hover:text-blue-800 font-medium tracking-wide text-sm uppercase mb-8 inline-block transition-colors">
