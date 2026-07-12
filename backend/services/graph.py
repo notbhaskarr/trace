@@ -122,7 +122,8 @@ def evaluate_response(state: GraphState):
     system_content = JUDGE_SYSTEM_PROMPT.replace("{context_text}", context_text).replace("{query}", question).replace("{response}", answer)
     
     messages = [
-        SystemMessage(content=system_content)
+        SystemMessage(content=system_content),
+        HumanMessage(content="Please evaluate Doobie's response based on the criteria above and return the JSON score.")
     ]
     
     response = judge_llm.invoke(messages)
