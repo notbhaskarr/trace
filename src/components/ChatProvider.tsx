@@ -32,6 +32,23 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   ]);
   const [isChatPending, startChatTransition] = useTransition();
   const [selectedEntry, setSelectedEntry] = useState<any>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+    const saved = localStorage.getItem('trace_chat_history');
+    if (saved) {
+      try {
+        setChatHistory(JSON.parse(saved));
+      } catch (e) {}
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isMounted) {
+      localStorage.setItem('trace_chat_history', JSON.stringify(chatHistory));
+    }
+  }, [chatHistory, isMounted]);
 
   // Resize State
   const [sidebarWidth, setSidebarWidth] = useState(400); // default width in px
@@ -74,6 +91,12 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const apiUrl = rawApiUrl.replace(/\/$/, '');
 
   const toggleChat = () => setIsSidebarOpen(prev => !prev);
+
+  const clearChat = () => {
+    const defaultMsg: Message[] = [{ role: 'assistant', content: "hey, this is doobie. what brought you here today?" }];
+    setChatHistory(defaultMsg);
+    localStorage.removeItem('trace_chat_history');
+  };
 
   const handleAskDoobie = (e: React.FormEvent) => {
     e.preventDefault();
@@ -140,7 +163,18 @@ export function ChatProvider({ children }: { children: ReactNode }) {
                 title="Drag to resize"
               />
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {/* Chat Header */}
+              <div className="flex items-center justify-between px-6 pt-6 pb-2 border-b border-white/30">
+                <span className="text-[10px] font-black tracking-[0.2em] text-gray-400">DOOBIE</span>
+                <button 
+                  onClick={clearChat}
+                  className="text-[10px] font-black uppercase tracking-[0.1em] text-gray-400 hover:text-black transition-colors"
+                >
+                  Clear Slate
+                </button>
+              </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 pt-4">
               {chatHistory.map((msg, idx) => (
                 <div key={idx} className="space-y-1">
                   <p className={`text-xs font-semibold uppercase tracking-wider ${msg.role === 'user' ? 'text-gray-500' : 'text-gray-400'}`}>
