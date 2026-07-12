@@ -1,8 +1,10 @@
 import React from 'react';
 import Link from 'next/link';
 import { PawPrint } from 'lucide-react';
+import { useChat } from './ChatProvider';
 
-export default function Navbar({ onToggleSidebar, isTimeline = false }: { onToggleSidebar?: () => void, isTimeline?: boolean }) {
+export default function Navbar({ isTimeline = false }: { isTimeline?: boolean }) {
+  const { toggleChat } = useChat();
   return (
     <header className="relative z-20 w-full flex items-center justify-between p-6 px-8 border-b border-white/50 bg-white/40 backdrop-blur-md shadow-sm">
       <div className="flex items-center gap-2">
@@ -27,24 +29,13 @@ export default function Navbar({ onToggleSidebar, isTimeline = false }: { onTogg
           </Link>
         )}
         
-        {onToggleSidebar ? (
-          <button 
-            onClick={onToggleSidebar}
-            className="text-gray-400 hover:text-black transition-all flex items-center justify-center p-1.5 rounded-full hover:bg-black/5"
-            title="Ask Doobie"
-          >
-            <PawPrint className="w-5 h-5" />
-          </button>
-        ) : (
-          <Link href="/?ask=true">
-            <button 
-              className="text-gray-400 hover:text-black transition-all flex items-center justify-center p-1.5 rounded-full hover:bg-black/5"
-              title="Ask Doobie"
-            >
-              <PawPrint className="w-5 h-5" />
-            </button>
-          </Link>
-        )}
+        <button 
+          onClick={toggleChat}
+          className="text-gray-400 hover:text-black transition-all flex items-center justify-center p-1.5 rounded-full hover:bg-black/5"
+          title="Ask Doobie"
+        >
+          <PawPrint className="w-5 h-5" />
+        </button>
       </div>
     </header>
   );
