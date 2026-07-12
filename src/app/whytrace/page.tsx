@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 
 export default function WhyTracePage() {
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans selection:bg-indigo-200 relative overflow-x-hidden flex flex-col">
+    <div className="h-full overflow-y-auto overflow-x-hidden bg-gray-50 text-gray-900 font-sans selection:bg-indigo-200 relative flex flex-col">
       
       {/* Decorative Background Orbs */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0 fixed">

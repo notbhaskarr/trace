@@ -40,7 +40,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [isMounted, setIsMounted] = useState(false);
   const [userName, setUserName] = useState("");
   const pathname = usePathname();
-  const showNavbar = pathname !== '/login' && pathname !== '/signup';
+  const showNavbar = pathname !== '/login' && pathname !== '/signup' && pathname !== '/whytrace';
 
   // Sound State
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
