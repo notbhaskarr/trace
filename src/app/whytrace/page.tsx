@@ -5,13 +5,35 @@ export default function WhyTracePage() {
   return (
     <div className="h-full overflow-y-auto overflow-x-hidden bg-gray-50 text-gray-900 font-sans selection:bg-indigo-200 relative flex flex-col">
       
-      {/* Decorative Background Orbs */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0 fixed">
-        <div className="absolute top-[-20%] left-[-10%] w-[50rem] h-[50rem] bg-indigo-200/40 rounded-full mix-blend-multiply filter blur-[100px] opacity-70 animate-pulse"></div>
-        <div className="absolute bottom-[-20%] right-[-10%] w-[50rem] h-[50rem] bg-stone-200/60 rounded-full mix-blend-multiply filter blur-[100px] opacity-70"></div>
+      {/* Connecting Dots / Network Background */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0 fixed flex items-center justify-center">
+        <svg viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="0.2" strokeLinecap="round" strokeLinejoin="round" className="w-[150vw] h-[150vh] min-w-[1000px] absolute -right-[20%] -top-[10%] -rotate-12 opacity-[0.03]">
+          <path d="M6 16L12 7L18 16" />
+          <circle cx="6" cy="16" r="0.5" fill="black" />
+          <circle cx="12" cy="7" r="0.5" fill="black" />
+          <circle cx="18" cy="16" r="0.5" fill="black" />
+        </svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="0.2" strokeLinecap="round" strokeLinejoin="round" className="w-[120vw] h-[120vh] min-w-[800px] absolute -left-[20%] top-[40%] rotate-45 opacity-[0.03]">
+          <path d="M6 16L12 7L18 16" />
+          <circle cx="6" cy="16" r="0.5" fill="black" />
+          <circle cx="12" cy="7" r="0.5" fill="black" />
+          <circle cx="18" cy="16" r="0.5" fill="black" />
+        </svg>
       </div>
 
       <main className="flex-1 relative z-10">
+        {/* Brand Header */}
+        <header className="w-full flex items-center p-8 px-8 md:px-24 max-w-7xl mx-auto">
+          <Link href="/" className="flex items-center gap-3 hover:opacity-70 transition-opacity">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-7 h-7 text-gray-900">
+              <path d="M6 16L12 7L18 16" />
+              <circle cx="6" cy="16" r="2.5" fill="currentColor" />
+              <circle cx="12" cy="7" r="2.5" fill="currentColor" />
+              <circle cx="18" cy="16" r="2.5" fill="currentColor" />
+            </svg>
+            <span className="text-xl font-black tracking-[0.25em] uppercase text-gray-900 pt-1 select-none">TRACE</span>
+          </Link>
+        </header>
         
         {/* Hero Section */}
         <section className="px-8 md:px-24 pt-12 pb-32 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-1000">
@@ -25,7 +47,7 @@ export default function WhyTracePage() {
               Every day, we experience a rush of ideas, feelings, and anxieties that shape who we are. But where do they go?
             </p>
             <p>
-              Traditional journaling is a one-way street. You pour your heart into an app, and it goes into a void. Notes apps become <span className="text-gray-900 font-semibold italic font-serif">graveyards of thoughts</span> you never revisit.
+              Traditional journaling is a one-way street. You pour your heart into an app, and it goes into a void. Notes apps become <span className="text-gray-900 font-semibold italic font-sans">graveyards of thoughts</span> you never revisit.
             </p>
           </div>
         </section>
@@ -42,7 +64,7 @@ export default function WhyTracePage() {
                 <strong className="text-indigo-600 font-bold">Trace</strong> reimagines the journal. It starts before you even speak—immersing you in a calming, ambient environment to create a safe space to decompress.
               </p>
               <p className="text-lg md:text-2xl text-gray-600 leading-relaxed font-medium mt-6">
-                When you're ready, just tap a button and speak natively. Perfect English or messy Hinglish—Trace understands the <em className="font-serif italic text-gray-900">meaning</em> and <em className="font-serif italic text-gray-900">emotion</em> of your words. It organizes your chaos.
+                When you're ready, just tap a button and speak natively. Perfect English or messy Hinglish—Trace understands the <em className="font-sans italic font-semibold text-gray-900">meaning</em> and <em className="font-sans italic font-semibold text-gray-900">emotion</em> of your words. It organizes your chaos.
               </p>
             </div>
             
@@ -69,7 +91,7 @@ export default function WhyTracePage() {
           <div className="max-w-4xl">
             <h2 className="text-xs font-black tracking-[0.2em] text-gray-400 mb-6 uppercase">The Magic</h2>
             <h3 className="text-5xl md:text-7xl font-black tracking-tighter leading-none mb-10">
-              IT TALKS <span className="font-serif italic text-indigo-500 font-medium">BACK.</span>
+              IT TALKS <span className="font-sans italic text-indigo-500 font-bold">BACK.</span>
             </h3>
             
             <p className="text-xl md:text-3xl text-gray-500 font-medium leading-tight tracking-tight mb-12">
@@ -78,14 +100,14 @@ export default function WhyTracePage() {
 
             <div className="p-8 md:p-14 bg-gray-900 text-white rounded-[2rem] shadow-2xl border border-gray-800">
               <p className="text-xs font-black tracking-[0.2em] text-gray-500 uppercase mb-4">You</p>
-              <p className="text-2xl md:text-4xl font-serif italic mb-12 text-gray-300 leading-tight">
+              <p className="text-2xl md:text-4xl font-sans italic font-semibold mb-12 text-gray-300 leading-tight">
                 "Doobie, maine pichle mahine kya goals set kiye the?"
               </p>
               
               <p className="text-xs font-black tracking-[0.2em] text-gray-500 uppercase mb-4">Doobie</p>
               <p className="text-xl md:text-2xl font-medium leading-relaxed text-gray-100">
                 He searches the meaning behind your words, connects the dots of your past, and answers you instantly, out loud, in a natural, conversational voice. <br/><br/>
-                <span className="text-indigo-400 font-serif italic">He reminds you of who you are when you forget.</span>
+                <span className="text-indigo-400 font-sans italic font-semibold">He reminds you of who you are when you forget.</span>
               </p>
             </div>
           </div>
@@ -95,7 +117,7 @@ export default function WhyTracePage() {
         <section className="px-8 py-32 text-center bg-black text-white selection:bg-indigo-500 border-t border-gray-900">
            <h2 className="text-5xl md:text-8xl font-black tracking-tighter mb-8 leading-none">
              DON'T SHOUT INTO <br/>
-             <span className="font-serif italic text-gray-500 font-medium">THE VOID.</span>
+             <span className="font-sans italic text-gray-500 font-bold">THE VOID.</span>
            </h2>
            <p className="text-xl md:text-3xl text-gray-400 font-medium tracking-tight mb-16">
              Speak your thoughts to a friend who remembers.
