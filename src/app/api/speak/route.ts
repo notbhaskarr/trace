@@ -21,7 +21,7 @@ export async function POST(req: Request) {
         chunks.push(currentText);
         break;
       }
-      
+
       let splitIdx = currentText.lastIndexOf('.', 450);
       if (splitIdx === -1) splitIdx = currentText.lastIndexOf('?', 450);
       if (splitIdx === -1) splitIdx = currentText.lastIndexOf('!', 450);
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
       inputs: chunks,
       target_language_code: "hi-IN",
       speaker: "neha",
-      pace: 1.15,
+      pace: 1.25,
       speech_sample_rate: 8000,
       enable_preprocessing: true,
       model: "bulbul:v3"
@@ -68,8 +68,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'No audio generated' }, { status: 500 });
     }
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('Speech generation error:', error);
-    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
