@@ -104,19 +104,20 @@ def retrieve(state: GraphState):
     }).execute()
     
     documents = []
-    seen_content = set()
+    seen_entry_ids = set()
     if match_res.data:
         for d in match_res.data:
-            chunk_content = d.get('chunk_content', '').strip()
-            if chunk_content and chunk_content not in seen_content:
+            entry_id = d.get('entry_id')
+            full_content = d.get('full_content', '').strip()
+            if full_content and entry_id not in seen_entry_ids:
                 documents.append({
-                    "chunk_content": chunk_content,
-                    "entry_id": d.get("entry_id"),
-                    "full_content": d.get("full_content"),
+                    "chunk_content": full_content,
+                    "entry_id": entry_id,
+                    "full_content": full_content,
                     "created_at": d.get("created_at"),
                     "location": d.get("location")
                 })
-                seen_content.add(chunk_content)
+                seen_entry_ids.add(entry_id)
         
     return {"documents": documents, "attempts": state.get("attempts", 0), "judge_feedback": state.get("judge_feedback", "")}
 
