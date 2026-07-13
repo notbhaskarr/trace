@@ -335,7 +335,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
               {/* Chat Header */}
               <div className="flex items-center justify-between px-6 pt-6 pb-2 border-b border-white/30">
-                  <img src="/doobie-logo.png" alt="Doobie" className="h-10 w-auto opacity-90 mix-blend-multiply object-contain" />
+                  <img src="/doobie-logo.png" alt="Doobie" className="h-16 w-auto opacity-90 mix-blend-multiply object-contain" />
                 <div className="flex items-center gap-4">
                   <button 
                     onClick={() => {
