@@ -33,7 +33,7 @@ export async function signup(formData: FormData) {
   const [firstName, ...rest] = name.split(' ')
   const lastName = rest.join(' ')
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -47,6 +47,12 @@ export async function signup(formData: FormData) {
 
   if (error) {
     return redirect(`/signup?error=${error.message}`)
+  }
+
+  if (data.session) {
+    // Confirm email is disabled, user is immediately logged in
+    revalidatePath('/', 'layout')
+    return redirect('/')
   }
 
   // Supabase sends a confirmation email by default unless disabled in dashboard
