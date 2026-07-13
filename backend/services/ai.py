@@ -19,11 +19,19 @@ def generate_embeddings(chunks: List[str]):
     enriched_chunks = [f"[Journal Entry] {c}" for c in chunks]
     embeddings = []
     
-    for text in enriched_chunks:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key={GEMINI_API_KEY}"
+    for i in range(0, len(enriched_chunks), 100):
+        batch = enriched_chunks[i:i+100]
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:batchEmbedContents?key={GEMINI_API_KEY}"
+        
+        requests_payload = []
+        for text in batch:
+            requests_payload.append({
+                "model": "models/gemini-embedding-001",
+                "content": {"parts": [{"text": text}]}
+            })
+            
         payload = {
-            "model": "models/gemini-embedding-001",
-            "content": {"parts": [{"text": text}]}
+            "requests": requests_payload
         }
         
         response = requests.post(url, json=payload)
@@ -31,7 +39,9 @@ def generate_embeddings(chunks: List[str]):
             raise Exception(f"API Error {response.status_code}: {response.text}")
             
         data = response.json()
-        embeddings.append(data["embedding"]["values"])
+        # Parse the batch response array exactly right
+        for item in data.get("embeddings", []):
+            embeddings.append(item.get("values", []))
         
     return embeddings
 

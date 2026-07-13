@@ -106,24 +106,17 @@ def retrieve(state: GraphState):
     documents = []
     seen_content = set()
     if match_res.data:
-        # Fetch the full parent entries for these chunks to get the actual full content and date!
-        entry_ids = list(set([d['entry_id'] for d in match_res.data]))
-        if entry_ids:
-            entries_res = user_client.table("entries").select("id, content, created_at, location").in_("id", entry_ids).execute()
-            entry_map = {e['id']: e for e in entries_res.data}
-            
-            for d in match_res.data:
-                chunk_content = d.get('content', '').strip()
-                parent_entry = entry_map.get(d['entry_id'])
-                if chunk_content and chunk_content not in seen_content and parent_entry:
-                    documents.append({
-                        "chunk_content": chunk_content,
-                        "entry_id": d["entry_id"],
-                        "full_content": parent_entry["content"],
-                        "created_at": parent_entry["created_at"],
-                        "location": parent_entry.get("location")
-                    })
-                    seen_content.add(chunk_content)
+        for d in match_res.data:
+            chunk_content = d.get('chunk_content', '').strip()
+            if chunk_content and chunk_content not in seen_content:
+                documents.append({
+                    "chunk_content": chunk_content,
+                    "entry_id": d.get("entry_id"),
+                    "full_content": d.get("full_content"),
+                    "created_at": d.get("created_at"),
+                    "location": d.get("location")
+                })
+                seen_content.add(chunk_content)
         
     return {"documents": documents, "attempts": state.get("attempts", 0), "judge_feedback": state.get("judge_feedback", "")}
 
@@ -157,6 +150,7 @@ def generate(state: GraphState):
             messages.append(HumanMessage(content=msg["content"]))
         else:
             from langchain_core.messages import AIMessage
+            messages.append(AIMessage(content=msg["content"]))
     messages.append(HumanMessage(content=question + "\n\n[CRITICAL INSTRUCTION: You MUST reply entirely in the exact same language as my question above. If my question is in English, reply in English. If my question is in Hinglish/Hindi, reply in Hinglish.]"))
     
     response = chat_llm.invoke(messages)
