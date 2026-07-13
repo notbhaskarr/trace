@@ -1,9 +1,0 @@
-{
-  "redirects": [
-    {
-      "source": "/",
-      "destination": "/trace",
-      "permanent": false
-    }
-  ]
-}

@@ -44,7 +44,5 @@ def chat_doobie(req: ChatRequest, user=Depends(get_current_user), token: str = D
         }
         
     except Exception as e:
-        import traceback
         print(f"Chat error: {e}")
-        traceback.print_exc()
         raise HTTPException(status_code=500, detail="Doobie encountered an error")

@@ -71,7 +71,7 @@ export default function Dashboard() {
         try {
           const formData = new FormData();
           formData.append('file', audioBlob);
-          const res = await fetch('/trace/api/transcribe', {
+          const res = await fetch('/api/transcribe', {
             method: 'POST',
             body: formData,
           });
@@ -118,7 +118,7 @@ export default function Dashboard() {
 
   React.useEffect(() => {
     // ponytail: this internal edge route falls back to IP location on localhost, but uses native edge headers on vercel.
-    fetch('/trace/api/geo').then(r => r.json()).then(d => {
+    fetch('/api/geo').then(r => r.json()).then(d => {
       const loc = `${d.city?.toUpperCase() || 'UNKNOWN'}, ${d.region || ''}`;
       setLocationStr(loc);
       setMeta(`${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} • ${loc}`);

@@ -118,7 +118,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         try {
           const formData = new FormData();
           formData.append('file', audioBlob);
-          const res = await fetch('/trace/api/transcribe', { method: 'POST', body: formData });
+          const res = await fetch('/api/transcribe', { method: 'POST', body: formData });
           const data = await res.json();
           if (res.ok && data.transcript) {
             setChatInput(prev => prev + (prev.endsWith(' ') || prev.length === 0 ? '' : ' ') + data.transcript);
@@ -150,7 +150,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const speakAnswer = async (text: string) => {
     if (!isAutoSpeak) return;
     try {
-      const res = await fetch('/trace/api/speak', {
+      const res = await fetch('/api/speak', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text })
@@ -447,7 +447,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
                 </button>
               </div>
             </form>
-yes
           </section>
         )}
         </div>
