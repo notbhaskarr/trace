@@ -335,10 +335,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
               {/* Chat Header */}
               <div className="flex items-center justify-between px-6 pt-6 pb-2 border-b border-white/30">
-                  <div className="flex items-center gap-2.5">
-                    <img src="/doobie-line.png" alt="Doobie" className="h-9 w-9 object-contain mix-blend-multiply opacity-60" />
-                    <span className="font-serif text-xl text-gray-400 tracking-wide select-none">doobie</span>
-                  </div>
+                  <img src="/doobie-line.png" alt="Doobie" className="h-12 w-12 object-contain mix-blend-multiply opacity-80" />
                 <div className="flex items-center gap-4">
                   <button 
                     onClick={() => {
@@ -436,7 +433,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
                   onChange={(e) => setChatInput(e.target.value)}
                   disabled={isChatPending}
                   placeholder="Message Doobie..."
-                  className="w-full bg-white/70 border border-white/80 shadow-inner rounded-md pl-4 pr-10 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-black/20 transition-all placeholder:text-gray-400"
+                  className="w-full bg-white/70 border border-white/80 shadow-inner rounded-md pl-4 pr-10 py-3 text-sm font-sans focus:outline-none focus:ring-1 focus:ring-black/20 transition-all placeholder:text-gray-400 placeholder:font-sans"
                 />
                 <button
                   type="submit"
