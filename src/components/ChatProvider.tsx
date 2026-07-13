@@ -335,10 +335,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
               {/* Chat Header */}
               <div className="flex items-center justify-between px-6 pt-6 pb-2 border-b border-white/30">
-                <div className="flex flex-col items-center justify-center -ml-2 mt-1">
-                  <img src="/doobie.png" alt="Doobie" className="h-10 w-10 opacity-80 mix-blend-multiply object-contain" />
-                  <span className="text-[8px] font-black tracking-[0.3em] text-gray-400 uppercase -mt-0.5 ml-1 select-none">DOOBIE</span>
-                </div>
+                  <img src="/doobie-logo.png" alt="Doobie" className="h-10 w-auto opacity-90 mix-blend-multiply object-contain" />
                 <div className="flex items-center gap-4">
                   <button 
                     onClick={() => {
