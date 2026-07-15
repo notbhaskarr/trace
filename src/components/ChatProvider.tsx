@@ -9,6 +9,7 @@ type Message = {
   role: 'user' | 'assistant';
   content: string;
   context?: any[];
+  isStreaming?: boolean;
 };
 
 type ChatContextType = {
@@ -34,6 +35,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [chatInput, setChatInput] = useState("");
   const [chatHistory, setChatHistory] = useState<Message[]>([]);
   const [isChatPending, startChatTransition] = useTransition();
+  const [streamStatus, setStreamStatus] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const chatScrollRef = useRef<HTMLDivElement | null>(null);
+  const stickToBottomRef = useRef(true);
   const [selectedEntry, setSelectedEntry] = useState<any>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [userName, setUserName] = useState("");
@@ -51,6 +56,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [isAutoSpeak, setIsAutoSpeak] = useState(false);
+  const isAutoSpeakRef = useRef(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('trace_auto_speak');
@@ -58,6 +64,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       setIsAutoSpeak(saved === 'true');
     }
   }, []);
+
+  useEffect(() => {
+    isAutoSpeakRef.current = isAutoSpeak;
+  }, [isAutoSpeak]);
 
   const handleToggleAutoSpeak = () => {
     setIsAutoSpeak(prev => {
@@ -208,6 +218,28 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     }
   }, [chatHistory, isMounted]);
 
+  const scrollChatToBottom = () => {
+    requestAnimationFrame(() => {
+      const el = chatScrollRef.current;
+      if (el) el.scrollTop = el.scrollHeight;
+    });
+  };
+
+  const handleChatScroll = () => {
+    const el = chatScrollRef.current;
+    if (!el) return;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    stickToBottomRef.current = distanceFromBottom < 80;
+  };
+
+  useEffect(() => {
+    if (stickToBottomRef.current) scrollChatToBottom();
+  }, [chatHistory, streamStatus]);
+
+  useEffect(() => {
+    if (isSidebarOpen) scrollChatToBottom();
+  }, [isSidebarOpen]);
+
   // Resize State
   const [sidebarWidth, setSidebarWidth] = useState(400); // default width in px
   const [isDragging, setIsDragging] = useState(false);
@@ -251,8 +283,82 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const toggleChat = () => setIsSidebarOpen(prev => !prev);
 
   const clearChat = () => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    setStreamStatus(null);
     setChatHistory(getDefaultMsg(userName));
     localStorage.removeItem('trace_chat_history');
+  };
+
+  const handleStreamEvent = (data: { type: string; message?: string; content?: string; context?: any[]; answer?: string }) => {
+    switch (data.type) {
+      case 'status':
+        setStreamStatus(data.message || null);
+        break;
+      case 'retrieved':
+        setChatHistory(prev => {
+          const updated = [...prev];
+          const last = updated[updated.length - 1];
+          if (last?.role === 'assistant') {
+            updated[updated.length - 1] = { ...last, context: data.context || [] };
+          }
+          return updated;
+        });
+        break;
+      case 'token':
+        setStreamStatus(null);
+        setChatHistory(prev => {
+          const updated = [...prev];
+          const last = updated[updated.length - 1];
+          if (last?.role === 'assistant') {
+            updated[updated.length - 1] = {
+              ...last,
+              content: last.content + (data.content || ''),
+              isStreaming: true,
+            };
+          }
+          return updated;
+        });
+        break;
+      case 'regenerating':
+        setStreamStatus(data.message || 'Let me think again...');
+        setChatHistory(prev => {
+          const updated = [...prev];
+          const last = updated[updated.length - 1];
+          if (last?.role === 'assistant') {
+            updated[updated.length - 1] = { ...last, content: '', isStreaming: true };
+          }
+          return updated;
+        });
+        break;
+      case 'done':
+        setStreamStatus(null);
+        setChatHistory(prev => {
+          const updated = [...prev];
+          updated[updated.length - 1] = {
+            role: 'assistant',
+            content: data.answer || '',
+            context: data.context || [],
+            isStreaming: false,
+          };
+          return updated;
+        });
+        if (isAutoSpeakRef.current && data.answer) {
+          speakAnswer(data.answer);
+        }
+        break;
+      case 'error':
+        setStreamStatus(null);
+        setChatHistory(prev => {
+          const updated = [...prev];
+          updated[updated.length - 1] = {
+            role: 'assistant',
+            content: data.message || "Error connecting to Doobie.",
+          };
+          return updated;
+        });
+        break;
+    }
   };
 
   const handleAskDoobie = (e: React.FormEvent) => {
@@ -261,9 +367,14 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
     const userMessage = chatInput;
     setChatInput("");
-    setChatHistory(prev => [...prev, { role: 'user', content: userMessage }]);
+    stickToBottomRef.current = true;
+    setChatHistory(prev => [
+      ...prev,
+      { role: 'user', content: userMessage },
+      { role: 'assistant', content: '', context: [], isStreaming: true },
+    ]);
+    setStreamStatus('Connecting...');
 
-    // Extract recent history (last 6 msgs), excluding the default greeting
     const recentHistory = chatHistory
       .filter(msg => !(msg.role === 'assistant' && msg.content.startsWith("hey ")))
       .slice(-6)
@@ -272,24 +383,71 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     startChatTransition(async () => {
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
-      
-      const res = await fetch(`${apiUrl}/api/chat`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.access_token}` 
-        },
-        body: JSON.stringify({ query: userMessage, chat_history: recentHistory })
-      });
-      const result = await res.json();
-      
-      if (!res.ok) {
-        setChatHistory(prev => [...prev, { role: 'assistant', content: result.detail || "Error connecting to Doobie." }]);
-      } else {
-        setChatHistory(prev => [...prev, { role: 'assistant', content: result.answer, context: result.context }]);
-        if (isAutoSpeak) {
-          speakAnswer(result.answer);
+
+      if (!session?.access_token) {
+        setChatHistory(prev => {
+          const updated = [...prev];
+          updated[updated.length - 1] = { role: 'assistant', content: "Please sign in to chat with Doobie." };
+          return updated;
+        });
+        setStreamStatus(null);
+        return;
+      }
+
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      try {
+        const res = await fetch(`${apiUrl}/api/chat/stream`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ query: userMessage, chat_history: recentHistory }),
+          signal: controller.signal,
+        });
+
+        if (!res.ok || !res.body) {
+          throw new Error('Stream failed');
         }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const parts = buffer.split('\n\n');
+          buffer = parts.pop() || '';
+
+          for (const part of parts) {
+            const line = part.trim();
+            if (line.startsWith('data: ')) {
+              handleStreamEvent(JSON.parse(line.slice(6)));
+            }
+          }
+        }
+      } catch (err) {
+        if ((err as Error).name === 'AbortError') return;
+        setStreamStatus(null);
+        setChatHistory(prev => {
+          const updated = [...prev];
+          updated[updated.length - 1] = {
+            role: 'assistant',
+            content: "Error connecting to Doobie.",
+          };
+          return updated;
+        });
+      } finally {
+        if (abortRef.current === controller) {
+          abortRef.current = null;
+        }
+        setStreamStatus(null);
       }
     });
   };
@@ -364,7 +522,11 @@ export function ChatProvider({ children }: { children: ReactNode }) {
                 </div>
               </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 pt-4">
+            <div
+              ref={chatScrollRef}
+              onScroll={handleChatScroll}
+              className="flex-1 overflow-y-auto p-6 space-y-6 pt-4"
+            >
               {chatHistory.map((msg, idx) => {
                 const isUser = msg.role === 'user';
                 return (
@@ -379,8 +541,15 @@ export function ChatProvider({ children }: { children: ReactNode }) {
                         ? 'bg-white text-gray-800 border-gray-200 rounded-tr-sm' 
                         : 'bg-black/5 text-gray-700 border-black/5 rounded-tl-sm'
                     }`}>
-                      <p>{msg.content}</p>
-                      {msg.context && msg.context.length > 0 && (
+                      <p>
+                        {msg.content || (msg.isStreaming && streamStatus ? (
+                          <span className="text-gray-400 italic">{streamStatus}</span>
+                        ) : null)}
+                        {msg.isStreaming && msg.content && (
+                          <span className="inline-block w-1.5 h-3.5 ml-0.5 bg-gray-400 animate-pulse align-middle" />
+                        )}
+                      </p>
+                      {msg.context && msg.context.length > 0 && !msg.isStreaming && (
                         <div className="flex flex-wrap gap-2 mt-3">
                           {msg.context.map((c, i) => {
                             let dateStr = `TRACE REF ${i+1}`;
@@ -406,16 +575,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
                 );
               })}
               
-              {isChatPending && (
-                <div className="flex w-full justify-start gap-2 animate-pulse">
-                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 mt-0.5 border border-gray-200">
-                    <PawPrint className="w-4 h-4 text-gray-500 opacity-70" />
-                  </div>
-                  <div className="max-w-[85%] text-[13px] leading-relaxed p-3 rounded-2xl rounded-tl-sm bg-black/5 text-gray-700 border-black/5">
-                    tracing...
-                  </div>
-                </div>
-              )}
             </div>
 
             <form onSubmit={handleAskDoobie} className="p-4 bg-white/40 border-t border-white/50 flex gap-2 backdrop-blur-md items-center">
