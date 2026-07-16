@@ -91,13 +91,15 @@ def extract_text(content) -> str:
     if isinstance(content, str):
         return content
     if isinstance(content, list):
+        if not content:
+            return ""
         parts = []
         for part in content:
             if isinstance(part, dict) and "text" in part:
                 parts.append(part["text"])
             elif isinstance(part, str):
                 parts.append(part)
-        return " ".join(parts) if parts else str(content)
+        return " ".join(parts) if parts else ""
     return str(content)
 
 
